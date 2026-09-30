@@ -5,10 +5,10 @@
 ---
 
 ## Identitas Kelompok
-- **Nicholas Benaya** — NIM: `5024241050`
-- **Dzaky Haady** — NIM: `5024241076`
-- **Alvis Shohan Fawwaz Nizar** — NIM: `5024241019`
-- **Muhammad Sayyid Tsabit** — NIM: `5024241013`
+- **Nicholas Benaya** — NRP: `5024241050`
+- **Dzaky Haady** — NRP: `5024241076`
+- **Alvis Shohan Fawwaz Nizar** — NRP: `5024241019`
+- **Muhammad Sayyid Tsabit** — NRP: `5024241013`
 
 ---
 
