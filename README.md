@@ -8,10 +8,10 @@ Repositori ini memuat implementasi, dokumentasi teknis, dan laporan formal **Tug
 - **Mata Kuliah:** Jaringan Komputer dan LAN
 - **Topik:** Virtualisasi Hypervisor Tipe 2 & Implementasi Komunikasi IPv6
 - **Anggota Kelompok:**
-  1. **Nicholas Benaya** — NIM: `5024241050`
-  2. **Dzaky Haady** — NIM: `5024241076`
-  3. **Alvis Shohan Fawwaz Nizar** — NIM: `5024241019`
-  4. **Muhammad Sayyid Tsabit** — NIM: `5024241013`
+  1. **Nicholas Benaya** — NRP: `5024241050`
+  2. **Dzaky Haady** — NRP: `5024241076`
+  3. **Alvis Shohan Fawwaz Nizar** — NRP: `5024241019`
+  4. **Muhammad Sayyid Tsabit** — NRP: `5024241013`
 
 ---
 
