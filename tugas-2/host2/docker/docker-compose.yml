@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  mqtt-publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    container_name: jarkom-mqtt-publisher-host2
+    environment:
+      # Ganti dengan IP LAN Windows Host 1
+      MQTT_BROKER_HOST: "192.168.1.10"
+      MQTT_BROKER_PORT: "1883"
+      MQTT_TOPIC: "jarkom/sensor/telemetry"
+      DEVICE_ID: "HOST2-IOT-NODE"
+      PUBLISH_INTERVAL: "3"
+    restart: unless-stopped

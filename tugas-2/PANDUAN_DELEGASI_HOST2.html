@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>SOP & Panduan Delegasi Pengerjaan Host 2 - JARKOMLAN</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm 15mm 20mm 15mm;
+            @bottom-right {
+                content: counter(page);
+                font-size: 9pt;
+                color: #64748b;
+            }
+        }
+
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            line-height: 1.55;
+            font-size: 10pt;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cover Header */
+        .header-doc {
+            border-bottom: 2.5px solid #0284c7;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header-doc .org {
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .header-doc h1 {
+            font-size: 18pt;
+            margin: 4px 0 6px 0;
+            color: #0f172a;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .header-doc .meta {
+            font-size: 9pt;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* Headings */
+        h2 {
+            font-size: 12.5pt;
+            color: #0369a1;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-top: 22px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 10.5pt;
+            color: #1e293b;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-weight: 700;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin: 0 0 8px 0;
+            text-align: justify;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0 14px 0;
+            font-size: 8.5pt;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 9px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        /* Code & Pre */
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 8.5pt;
+            background-color: #f1f5f9;
+            padding: 1.5px 4px;
+            border-radius: 3px;
+            border: 1px solid #e2e8f0;
+            color: #0369a1;
+        }
+
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 8pt;
+            line-height: 1.45;
+            overflow-x: auto;
+            margin: 8px 0 12px 0;
+            page-break-inside: avoid;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border: none;
+            font-size: 8pt;
+        }
+
+        /* Callout Box */
+        .callout {
+            border-left: 3.5px solid #0284c7;
+            background-color: #f0f9ff;
+            padding: 8px 12px;
+            margin: 10px 0 12px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 9pt;
+            page-break-inside: avoid;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 3px;
+        }
+
+        .callout-warn {
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+
+        .callout-warn .callout-title {
+            color: #b45309;
+        }
+
+        /* Lists */
+        ol, ul {
+            margin: 0 0 10px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-req {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-opt {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Dokumen -->
+    <div class="header-doc">
+        <div class="org">Mata Kuliah: Jaringan Komputer dan LAN (JARKOMLAN) &bull; Tugas 2</div>
+        <h1>SOP & Panduan Delegasi Pengerjaan Host 2</h1>
+        <div class="meta">
+            <span><strong>Target Node:</strong> Host 2 (Windows &bull; Docker Publisher &amp; Web Client)</span>
+            <span><strong>Kelompok:</strong> Nicholas B., Dzaky H., Alvis S., Sayyid T.</span>
+            <span><strong>Revisi:</strong> 1.0 (Final)</span>
+        </div>
+    </div>
+
+    <!-- Bagian 1 -->
+    <h2>1. Ringkasan Tugas &amp; Peran Host 2</h2>
+    <p>
+        Dokumen ini disusun sebagai panduan teknis bagi anggota tim yang memegang <strong>Host 2</strong>. 
+        Pada sistem terdistribusi ini, Host 2 berperan ganda sebagai <strong>Edge IoT Node</strong> (pengirim data) 
+        dan <strong>Monitoring Station</strong> (peninjau data dari Web Server di Host 1).
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;">Layanan di Host 2</th>
+                <th style="width: 25%;">Lingkungan Eksekusi</th>
+                <th style="width: 25%;">Protokol &amp; Port</th>
+                <th style="width: 25%;">Tujuan Komunikasi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>MQTT Publisher</strong></td>
+                <td>Docker Container</td>
+                <td>MQTT over TCP / Port <code>1883</code></td>
+                <td>Kirim telemetri berkala ke Broker Mosquitto (Host 1)</td>
+            </tr>
+            <tr>
+                <td><strong>Web Client</strong></td>
+                <td>Browser &amp; Python CLI</td>
+                <td>HTTP / Port <code>8080</code></td>
+                <td>Akses dashboard data pada Web Server Linux VM (Host 1)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-title">Prinsip Komunikasi Lintas Perangkat:</div>
+        Kedua laptop (Host 1 dan Host 2) harus berada dalam satu jaringan lokal (Wi-Fi, Switch, atau Hotspot yang sama). 
+        Host 2 tidak menjalankan database atau broker; seluruh penyimpanan dan pemrosesan terpusat di Host 1.
+    </div>
+
+    <!-- Bagian 2 -->
+    <h2>2. Normalisasi &amp; Standarisasi Kontrak Data (Anti-Konflik)</h2>
+    <p>
+        Untuk menghindari konflik kegagalan pembacaan (seperti <em>parsing error</em>, <em>type mismatch</em>, nilai <code>NULL</code>, 
+        atau data duplikat), ditetapkan standarisasi kontrak pertukaran data yang mengikat antara Publisher (Host 2) dan Ingestion Subscriber (Host 1).
+    </p>
+
+    <h3>A. Normalisasi Skema JSON Payload (Data In-Flight)</h3>
+    <p>
+        Setiap pesan yang dikirim oleh Publisher <strong>wajib berupa string JSON valid</strong> (UTF-8) dengan struktur kunci yang sudah dinormalisasi berikut:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Key Field</th>
+                <th>Tipe Data</th>
+                <th>Status</th>
+                <th>Format / Satuan</th>
+                <th>Deskripsi &amp; Aturan Validasi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>device_id</code></td>
+                <td>String</td>
+                <td><span class="badge badge-req">Wajib</span></td>
+                <td>Alfanumerik (Huruf/Angka/Strip)</td>
+                <td>Identitas unik node pengirim (misal: <code>"HOST2-IOT-NODE"</code>). Maksimal 64 karakter.</td>
+            </tr>
+            <tr>
+                <td><code>seq</code></td>
+                <td>Integer</td>
+                <td><span class="badge badge-req">Wajib</span></td>
+                <td>Bilangan bulat &ge; 1</td>
+                <td>Nomor urut paket pengiriman untuk mendeteksi <em>packet drop</em> atau <em>re-ordering</em>.</td>
+            </tr>
+            <tr>
+                <td><code>temperature</code></td>
+                <td>Float</td>
+                <td><span class="badge badge-req">Wajib</span></td>
+                <td>Derajat Celcius (&deg;C)</td>
+                <td>Nilai desimal numerik (presisi 2 angka di belakang koma, misal <code>28.75</code>). Rentang: <code>20.00 - 45.00</code>.</td>
+            </tr>
+            <tr>
+                <td><code>humidity</code></td>
+                <td>Float</td>
+                <td><span class="badge badge-req">Wajib</span></td>
+                <td>Persentase Relatif (%)</td>
+                <td>Nilai desimal numerik (misal <code>65.40</code>). Rentang: <code>30.00 - 95.00</code>.</td>
+            </tr>
+            <tr>
+                <td><code>voltage</code></td>
+                <td>Float</td>
+                <td><span class="badge badge-opt">Opsional</span></td>
+                <td>Volt (V)</td>
+                <td>Tegangan baterai/daya sensor node (misal <code>3.30</code>). Rentang: <code>3.00 - 3.50</code>.</td>
+            </tr>
+            <tr>
+                <td><code>source</code></td>
+                <td>String</td>
+                <td><span class="badge badge-opt">Opsional</span></td>
+                <td>Teks Bebas</td>
+                <td>Keterangan asal lingkungan (misal: <code>"Host 2 Windows Container"</code>).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warn">
+        <div class="callout-title">Perhatian Normalisasi Nilai:</div>
+        Jangan mengirim angka dalam format string (contoh yang <strong>salah</strong>: <code>"temperature": "28.5"</code>). 
+        Kirimkan langsung sebagai tipe numerik (contoh yang <strong>benar</strong>: <code>"temperature": 28.5</code>). 
+        Jangan mengganti nama kunci menjadi bahasa lain (misal <code>suhu</code> atau <code>temp</code>) karena Subscriber hanya mengenali key <code>temperature</code>.
+    </div>
+
+    <h3>Contoh Payload JSON Baku:</h3>
+<pre><code>{
+  "device_id": "HOST2-IOT-NODE",
+  "seq": 14,
+  "temperature": 29.40,
+  "humidity": 68.10,
+  "voltage": 3.32,
+  "source": "Host 2 Windows Docker Container"
+}</code></pre>
+
+    <div class="page-break"></div>
+
+    <h3>B. Sinkronisasi dengan Normalisasi Database MySQL di Host 1</h3>
+    <p>
+        Di sisi Host 1, data yang masuk dari Host 2 otomatis dipetakan ke dalam tabel MySQL <code>sensor_telemetry</code>. 
+        Struktur ini telah memenuhi kaidah <strong>3rd Normal Form (3NF)</strong>:
+    </p>
+    <ul>
+        <li><strong>1NF (First Normal Form):</strong> Setiap kolom bernilai atomik (atribut suhu, kelembapan, dan voltase berdiri sendiri, bukan array/composite). Primary key unik berupa <code>id INT AUTO_INCREMENT</code>.</li>
+        <li><strong>2NF (Second Normal Form):</strong> Seluruh kolom non-kunci bergantung secara fungsional penuh pada Primary Key transaksi.</li>
+        <li><strong>3NF (Third Normal Form):</strong> Tidak terdapat ketergantungan transitif antar-atribut non-kunci.</li>
+    </ul>
+
+    <h3>C. Standarisasi Topik &amp; Parameter MQTT</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">Parameter</th>
+                <th style="width: 35%;">Nilai Standar</th>
+                <th style="width: 35%;">Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Topic Target</strong></td>
+                <td><code>jarkom/sensor/telemetry</code></td>
+                <td>Subscriber Host 1 mendengarkan pola wildcard: <code>jarkom/sensor/#</code></td>
+            </tr>
+            <tr>
+                <td><strong>QoS (Quality of Service)</strong></td>
+                <td><code>0</code> (At most once) atau <code>1</code> (At least once)</td>
+                <td>Gunakan QoS <code>0</code> untuk throughput cepat atau QoS <code>1</code> untuk jaminan sampai.</td>
+            </tr>
+            <tr>
+                <td><strong>Retain Flag</strong></td>
+                <td><code>False</code></td>
+                <td>Pesan tidak disimpan permanen di broker sebagai retain message.</td>
+            </tr>
+            <tr>
+                <td><strong>Interval Pengiriman</strong></td>
+                <td>Setiap <code>3 detik</code> (Default)</td>
+                <td>Dapat diatur lewat environment variable <code>PUBLISH_INTERVAL</code>.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Bagian 3 -->
+    <h2>3. Langkah Pengerjaan di Host 2 (Hands-on Step-by-Step)</h2>
+
+    <h3>Langkah 1: Persiapan File Proyek</h3>
+    <p>
+        Pastikan Anda telah menyalin folder <code>host2/</code> dari repositori kelompok ke laptop Host 2. Struktur berkas yang Anda perlukan:
+    </p>
+<pre><code>host2/
+├── docker/
+│   ├── docker-compose.yml          # Konfigurasi container
+│   └── publisher/
+│       ├── Dockerfile              # Setup image Python
+│       ├── requirements.txt        # Dependensi paho-mqtt
+│       └── publisher.py            # Logika pengiriman data periodik
+└── web_client/
+    └── test_web_client.py          # Script uji coba client via terminal</code></pre>
+
+    <h3>Langkah 2: Sinkronisasi Alamat IP Host 1</h3>
+    <ol>
+        <li>Tanyakan kepada pemegang <strong>Host 1</strong> alamat IP LAN miliknya (hasil <code>ipconfig</code> di Host 1, misal: <code>192.168.1.10</code>).</li>
+        <li>Buka berkas <code>host2/docker/docker-compose.yml</code> menggunakan teks editor (VS Code / Notepad).</li>
+        <li>Ubah nilai <code>MQTT_BROKER_HOST</code> sesuai IP Host 1:</li>
+    </ol>
+<pre><code>services:
+  mqtt-publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    container_name: jarkom-mqtt-publisher-host2
+    environment:
+      MQTT_BROKER_HOST: "192.168.1.10"   # <-- GANTI DENGAN IP WINDOWS HOST 1
+      MQTT_BROKER_PORT: "1883"
+      MQTT_TOPIC: "jarkom/sensor/telemetry"
+      DEVICE_ID: "HOST2-IOT-NODE"
+      PUBLISH_INTERVAL: "3"
+    restart: unless-stopped</code></pre>
+
+    <h3>Langkah 3: Jalankan Container Publisher di Docker</h3>
+    <p>Buka PowerShell atau CMD di Host 2, masuk ke direktori folder <code>host2/docker</code> dan jalankan:</p>
+<pre><code>cd "path\ke\folder\host2\docker"
+docker compose up -d --build</code></pre>
+
+    <h3>Langkah 4: Pantau Log Pengiriman Data</h3>
+    <p>Pastikan container berhasil terhubung dan mengirim paket data setiap 3 detik dengan melihat log:</p>
+<pre><code>docker logs -f jarkom-mqtt-publisher-host2</code></pre>
+    <p><strong>Ciri Berhasil:</strong> Muncul pesan <code>Berhasil terhubung ke Broker di 192.168.1.10:1883</code> dan baris <code>[1] Data terkirim ke jarkom/sensor/telemetry: {...}</code>.</p>
+
+    <div class="page-break"></div>
+
+    <h3>Langkah 5: Eksekusi Web Client (Uji Penerimaan di Host 2)</h3>
+    <p>Ada 2 cara memvalidasi peran Web Client dari Host 2:</p>
+    <ul>
+        <li>
+            <strong>Opsi A (Via Browser Google Chrome / Edge):</strong><br>
+            Buka browser di Host 2 dan ketik alamat Web Server Host 1:
+            <code>http://&lt;IP_VM_LINUX_HOST1&gt;:8080</code> (misal: <code>http://192.168.1.15:8080</code>).<br>
+            <em>Verifikasi:</em> Dashboard web akan menampilkan tabel telemetri dengan Device ID <code>HOST2-IOT-NODE</code> yang bertambah secara real-time.
+        </li>
+        <li>
+            <strong>Opsi B (Via Python CLI Web Client):</strong><br>
+            Jalankan script verifikasi di terminal Host 2:
+<pre><code>python host2\web_client\test_web_client.py</code></pre>
+            <em>Catatan:</em> Script akan mencetak respon HTTP 200 OK beserta tabel ringkasan data yang tersimpan di server.
+        </li>
+    </ul>
+
+    <!-- Bagian 4 -->
+    <h2>4. Checklist Verifikasi &amp; Troubleshooting Jaringan</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;">Gejala Kendala</th>
+                <th style="width: 35%;">Penyebab Utama</th>
+                <th style="width: 40%;">Langkah Solusi Cepat</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Koneksi Timeout / Refused ke Port 1883</strong></td>
+                <td>Windows Firewall di Host 1 memblokir paket masuk, atau IP Broker salah.</td>
+                <td>
+                    1. Uji konektivitas di PowerShell Host 2:<br>
+                    <code>Test-NetConnection -ComputerName 192.168.1.10 -Port 1883</code><br>
+                    2. Pastikan Host 1 sudah menjalankan <code>setup_firewall.ps1</code>.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Tidak Bisa Ping antar Host</strong></td>
+                <td>Fitur <em>AP Isolation</em> aktif pada Wi-Fi publik/kampus, memblokir lalu lintas antar-klien.</td>
+                <td>
+                    Gunakan <strong>Hotspot / Tethering dari HP</strong> untuk menghubungkan kedua laptop ke satu jaringan lokal bersama tanpa restriksi isolasi.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Web Server tidak bisa dibuka dari Host 2</strong></td>
+                <td>Adapter jaringan VM di Host 1 masih dalam mode NAT, bukan Bridged.</td>
+                <td>
+                    Minta rekan Host 1 mengubah pengaturan adapter VM di VirtualBox menjadi <strong>Bridged Adapter</strong> agar VM mendapat IP LAN sendiri.
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Data tidak muncul di Web Server</strong></td>
+                <td>Subscriber di Host 1 belum membaca pesan, atau format JSON tidak sesuai.</td>
+                <td>
+                    Periksa log subscriber di Host 1: <code>docker logs -f jarkom-mqtt-subscriber</code>. Pastikan key JSON sesuai standar di Bab 2.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Pengambilan Bukti Laporan Praktikum (Evidence Checklist):</h3>
+    <p>Sebelum mematikan layanan, anggota pemegang Host 2 wajib mengambil tangkapan layar (screenshot):</p>
+    <ol>
+        <li>Tangkapan layar terminal perintah <code>docker logs -f jarkom-mqtt-publisher-host2</code> yang menunjukkan paket data sukses terkirim.</li>
+        <li>Tangkapan layar browser di Host 2 yang menampilkan antarmuka dashboard Web Server Host 1 berisi data dari Host 2.</li>
+        <li><em>(Nilai Tambah Jarkom)</em> Tangkapan layar <strong>Wireshark</strong> di Host 2 dengan filter <code>mqtt || http</code> yang memperlihatkan paket TCP MQTT Publish (port 1883) dan HTTP GET (port 8080).</li>
+    </ol>
+
+    <div style="margin-top: 25px; padding-top: 10px; border-top: 1px solid #cbd5e1; font-size: 8.5pt; color: #64748b; text-align: center;">
+        Dokumen ini dibuat otomatis sebagai panduan kerja tim &bull; Jaringan Komputer dan LAN (JARKOMLAN) &bull; 2026
+    </div>
+
+</body>
+</html>

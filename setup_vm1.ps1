@@ -14,5 +14,5 @@ New-NetIPAddress -InterfaceAlias $adapter.Name -IPAddress "fd00:db8:1::10" -Pref
 Write-Host "[*] Membuka firewall untuk ICMPv6 (Ping)..." -ForegroundColor Cyan
 New-NetFirewallRule -DisplayName "Allow ICMPv6-In" -Direction Inbound -Protocol ICMPv6 -IcmpType 128 -Action Allow -ErrorAction SilentlyContinue
 
-Write-Host "[✓] Konfigurasi VM 1 Selesai!" -ForegroundColor Green
+Write-Host "[OK] Konfigurasi VM 1 Selesai!" -ForegroundColor Green
 Get-NetIPAddress -InterfaceAlias $adapter.Name -AddressFamily IPv6 | Format-Table IPAddress, PrefixLength

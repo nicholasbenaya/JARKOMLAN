@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # 1. Broker MQTT (Mosquitto)
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: jarkom-mqtt-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  # 2. Database Server (MySQL)
+  db-server:
+    image: mysql:8.0
+    container_name: jarkom-mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: jarkom_iot
+      MYSQL_USER: jarkom
+      MYSQL_PASSWORD: jarkom123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
+    restart: unless-stopped
+
+  # 3. MQTT Subscriber Service
+  mqtt-subscriber:
+    build:
+      context: ./subscriber
+      dockerfile: Dockerfile
+    container_name: jarkom-mqtt-subscriber
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+      db-server:
+        condition: service_healthy
+    environment:
+      MQTT_BROKER_HOST: mqtt-broker
+      MQTT_BROKER_PORT: 1883
+      MQTT_TOPIC: "jarkom/sensor/#"
+      DB_HOST: db-server
+      DB_PORT: 3306
+      DB_USER: jarkom
+      DB_PASSWORD: jarkom123
+      DB_NAME: jarkom_iot
+    restart: unless-stopped
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  mysql_data:
