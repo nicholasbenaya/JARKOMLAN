@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan & Skenario Demo 2 Host - JARKOMLAN Tugas 2</title>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --border: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --accent-green: #059669;
+            --accent-amber: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2.5rem 1rem;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .badge-subject {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+            padding-left: 0.75rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p, li {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.4rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: var(--code-bg);
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            color: #0f172a;
+            overflow-x: auto;
+            margin: 0.75rem 0 1.25rem 0;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #d946ef;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .dialog-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid var(--accent-green);
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin: 0.75rem 0 1.25rem 0;
+        }
+
+        .dialog-speaker {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .speaker-h1 {
+            color: var(--primary);
+        }
+
+        .speaker-h2 {
+            color: var(--accent-amber);
+        }
+
+        .speaker-both {
+            color: #7c3aed;
+        }
+
+        .dialog-text {
+            font-style: italic;
+            color: #1e293b;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .action-tag {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #334155;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .qa-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background: #fafafa;
+        }
+
+        .qa-q {
+            font-weight: 700;
+            color: #b91c1c;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .qa-a {
+            color: #1e293b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            pre, .dialog-box, .qa-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="badge-subject">JARKOMLAN &bull; TUGAS 2 PRAKTIKUM</span>
+            <h1>Panduan Demonstrasi Kolaboratif (Host 1 & Host 2)</h1>
+            <p class="subtitle">Skenario Duet, Daftar Perintah Eksekusi, dan Naskah Tanya-Jawab Pengujian Sistem IoT Terdistribusi</p>
+        </header>
+
+        <h2>1. Pembagian Peran & Topologi Sistem</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Komponen</th>
+                    <th style="width: 37.5%;">Host 1 (Laptop 1)</th>
+                    <th style="width: 37.5%;">Host 2 (Laptop 2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Peran Utama</strong></td>
+                    <td>Pusat Backend, Broker, Database, & Dashboard di VM</td>
+                    <td>Edge IoT Publisher Node & Client Monitor</td>
+                </tr>
+                <tr>
+                    <td><strong>Lingkungan Operasi</strong></td>
+                    <td>Docker WSL 2 & VirtualBox Linux VM (Alpine)</td>
+                    <td>Docker Desktop / Local Python</td>
+                </tr>
+                <tr>
+                    <td><strong>Service Berjalan</strong></td>
+                    <td>
+                        &bull; Mosquitto MQTT Broker (1883)<br>
+                        &bull; MySQL 8.0 DBMS (3306)<br>
+                        &bull; MQTT Subscriber Worker<br>
+                        &bull; Flask Web Server Dashboard (8080)
+                    </td>
+                    <td>
+                        &bull; MQTT Publisher Container (`jarkom-mqtt-publisher-host2`)<br>
+                        &bull; Web Browser Chrome / Firefox
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Port Terbuka</strong></td>
+                    <td>1883 (TCP), 3306 (TCP), 8080 (TCP)</td>
+                    <td>Tidak ada port masuk (Outbound Client only)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2. Persiapan Konektivitas Jaringan</h2>
+        <p>Pilih salah satu metode koneksi di bawah ini sesuai situasi demo:</p>
+        
+        <h3>Opsi A: Demo Offline (Tatap Muka & Hotspot HP Bersama)</h3>
+        <ol>
+            <li>Salah satu orang menyalakan <strong>Hotspot HP</strong>. Kedua laptop wajib connect ke Wi-Fi yang sama.</li>
+            <li>Di <strong>Host 1</strong>, ketik <code>ipconfig</code> di PowerShell untuk melihat IP Wi-Fi (misal: <code>192.168.43.15</code>).</li>
+            <li>Di <strong>Host 2</strong>, buka <code>tugas-2/host2/docker/docker-compose.yml</code> dan atur:<br>
+                <code>MQTT_BROKER_HOST: "192.168.43.15"</code> dan <code>MQTT_BROKER_PORT: "1883"</code>.</li>
+            <li>Dashboard dibuka Host 2 di browser via <code>http://192.168.43.15:8080</code>.</li>
+        </ol>
+
+        <h3>Opsi B: Demo Online (Jarak Jauh / Port Tunneling Internet)</h3>
+        <ol>
+            <li>Di <strong>Host 1</strong>, jalankan <code>tugas-2\start_internet_tunnel.bat</code> (double-click di Windows).</li>
+            <li>Akan terbuka 2 jendela CMD. Salin alamat tunnel publik yang muncul:
+                <ul>
+                    <li>Tunnel TCP (Port 1883): misal <code>tcp://gcdyg-182-8-97-149.run.pinggy-free.link:36219</code></li>
+                    <li>Tunnel HTTPS (Port 8080): misal <code>https://kqaem-2404-c0-b601.run.pinggy-free.link</code></li>
+                </ul>
+            </li>
+            <li>Di <strong>Host 2</strong>, masukkan Host & Port TCP tersebut ke <code>docker-compose.yml</code>:<br>
+                <code>MQTT_BROKER_HOST: "gcdyg-182-8-97-149.run.pinggy-free.link"</code><br>
+                <code>MQTT_BROKER_PORT: "36219"</code>.</li>
+            <li>Host 2 dan Penguji membuka Web Dashboard langsung via link HTTPS tunnel di atas.</li>
+        </ol>
+
+        <h2>3. Skenario Demonstrasi Duet (Alur Per Babak)</h2>
+
+        <h3>Babak 1: Pendahuluan & Penjelasan Arsitektur (~1 Menit)</h3>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-h1">&bull; Host 1 Berbicara:</div>
+            <div class="dialog-text">
+                "Selamat pagi/siang Bapak/Ibu Dosen dan Mas/Mbak Asisten. Pada Tugas 2 JARKOMLAN ini, kami mengimplementasikan arsitektur pipeline IoT terdistribusi multi-host. Host 1 bertindak sebagai sentral backend yang mengelola MQTT Broker Mosquitto, Database MySQL, Subscriber Worker pada Docker WSL 2, serta Web Server Dashboard yang kami isolasi di dalam Virtual Machine Linux Alpine."
+            </div>
+        </div>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-h2">&bull; Host 2 Berbicara:</div>
+            <div class="dialog-text">
+                "Sedangkan Host 2 bertindak sebagai Edge IoT Node yang menjalankan container Docker Publisher untuk mengirimkan telemetri sensor lingkungan seperti suhu, kelembapan, dan tegangan secara periodik ke Host 1 menggunakan protokol MQTT."
+            </div>
+        </div>
+
+        <h3>Babak 2: Pembuktian Jaringan & Isolasi Web Server di VM Linux (~2 Menit)</h3>
+        <span class="action-tag">Aksi di Layar Host 1</span>
+        <p>1. Buka terminal VirtualBox VM Alpine dan periksa antarmuka serta gateway:</p>
+        <pre><code># Tunjukkan IP eth0 VM:
+ip addr show eth0
+
+# Tunjukkan Default Gateway Host Windows:
+ip route show</code></pre>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-h1">&bull; Host 1 Berbicara:</div>
+            <div class="dialog-text">
+                "Dapat dilihat pada interface eth0, VM Linux kami menerima IP privat 10.0.2.15/24 dari DHCP VirtualBox mode NAT. Melalui perintah ip route show, default gateway mengarah ke 10.0.2.2, yang merupakan representasi host fisik Windows tempat database berada."
+            </div>
+        </div>
+
+        <p>2. Uji Konektivitas Layer 3 (ICMP) vs Layer 4 (TCP Netcat):</p>
+        <pre><code># Uji Layer 3 (ICMP Ping):
+ping -c 2 10.0.2.2
+
+# Uji Layer 4 (Port Service Check):
+nc -zv 10.0.2.2 3306
+nc -zv 10.0.2.2 1883</code></pre>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-h1">&bull; Host 1 Berbicara:</div>
+            <div class="dialog-text">
+                "Ping membuktikan konektivitas kabel/Layer 3 ke host dengan RTT stabil di bawah 1 ms. Selanjutnya dengan nc -zv, kami memverifikasi keterbukaan port TCP Layer 4. Port 3306 untuk MySQL dan 1883 untuk Broker Mosquitto berstatus open dan siap melayani koneksi soket."
+            </div>
+        </div>
+
+        <h3>Babak 3: Pembuktian Publisher Docker & Kontrak JSON (~1.5 Menit)</h3>
+        <span class="action-tag">Aksi di Layar Host 2</span>
+        <p>Tunjukkan konfigurasi <code>docker-compose.yml</code> dan skrip <code>publisher.py</code> di Laptop 2:</p>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-h2">&bull; Host 2 Berbicara:</div>
+            <div class="dialog-text">
+                "Pada Host 2, service publisher kami dikemas dalam Dockerfile berbasis python:3.11-slim. Kami mengarahkan target broker ke alamat Host 1 dengan topik jarkom/sensor/telemetry dan interval transmisi 3 detik. Sebelum integrasi, kami telah menetapkan kontrak normalisasi data formal sehingga format JSON yang dikirimkan terstandarisasi dan langsung diterima dengan aman oleh skema database di Host 1."
+            </div>
+        </div>
+
+        <h3>Babak 4: Demonstrasi Live Integrasi Real-Time (~2.5 Menit)</h3>
+        <p><strong>Langkah 1:</strong> Host 1 dan Host 2 sama-sama membuka Web Dashboard di browser masing-masing.</p>
+        <p><strong>Langkah 2:</strong> Host 2 menyalakan Publisher di terminal Laptop 2:</p>
+        <pre><code>docker compose up -d
+docker logs -f jarkom-mqtt-publisher-host2</code></pre>
+        <p><strong>Langkah 3:</strong> Host 1 menunjukkan log live subscriber di PowerShell Laptop 1:</p>
+        <pre><code>docker logs -f jarkom-mqtt-subscriber</code></pre>
+        <div class="dialog-box">
+            <div class="dialog-speaker speaker-both">&bull; Host 1 & Host 2 Berbicara Serentak:</div>
+            <div class="dialog-text">
+                "Dapat dilihat pada layar terminal Host 1, subscriber langsung menerima payload dari HOST2-IOT-NODE dan menyimpannya ke MySQL. Dan secara bersamaan pada dashboard browser di kedua laptop, angka total data serta baris tabel bertambah secara realtime setiap 3 detik tanpa perlu merefresh halaman."
+            </div>
+        </div>
+
+        <h2>4. Pertanyaan Penguji & Jawaban Teknis Tepat</h2>
+
+        <div class="qa-card">
+            <div class="qa-q">Q1: Kenapa Web Server diletakkan di VM Linux, bukan langsung di Docker Host 1?</div>
+            <div class="qa-a">
+                <strong>Jawaban:</strong> Sesuai instruksi penugasan, penempatan Web Server di VM menguji kemampuan administrasi jaringan Linux murni (Alpine), pengelolaan antarmuka kernel eth0, routing gateway NAT 10.0.2.2, serta isolasi keamanan antar lingkungan server fisik dan virtual.
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-q">Q2: Bagaimana Web Server di VM (10.0.2.15) bisa mengakses MySQL (3306) di Windows Host?</div>
+            <div class="qa-a">
+                <strong>Jawaban:</strong> VirtualBox mode NAT secara arsitektur menetapkan IP 10.0.2.2 sebagai alias host fisik Windows. Di Windows Host, port 3306 Docker di-bind ke 0.0.0.0:3306 dan firewall telah kami izinkan, sehingga query TCP dari dalam VM diteruskan langsung ke container MySQL.
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-q">Q3: Kenapa Host 2 tidak langsung konek dan insert ke MySQL Host 1 saja?</div>
+            <div class="qa-a">
+                <strong>Jawaban:</strong> Dalam best practice keamanan dan arsitektur IoT modern, database tidak boleh diekspos langsung ke perangkat luar. Menggunakan Message Broker MQTT memberikan loose coupling, efisiensi bandwidth tinggi pada jaringan edge, serta ketahanan buffer data (fault tolerance).
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-q">Q4: Mengapa tadi saat port tunneling harus menggunakan 127.0.0.1 bukan localhost?</div>
+            <div class="qa-a">
+                <strong>Jawaban:</strong> Di Windows 10/11, OpenSSH me-resolve localhost ke alamat IPv6 loopback (::1). Karena port forwarding VirtualBox dan Docker hanya listen pada IPv4 (0.0.0.0), forwarding ke IPv6 ditolak (connection refused). Penggunaan 127.0.0.1 memaksa rute IPv4 murni sehingga koneksi tunnel berhasil 100%.
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
