@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+            display: inline-block;
+        }
+
+        .diagram-container {
+            width: 860px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 18px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .diagram-title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: 210px 60px 530px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Node Box */
+        .node-box {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1.5px solid #94a3b8;
+            background: #f8fafc;
+        }
+
+        .node-client {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .node-host1 {
+            border-color: #0f172a;
+            background: #f8fafc;
+            padding: 14px;
+        }
+
+        .node-header {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .ip-pill {
+            background: #0f172a;
+            color: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .ip-pill-client {
+            background: #2563eb;
+        }
+
+        .ip-pill-vm {
+            background: #059669;
+        }
+
+        .node-desc {
+            font-size: 10.5px;
+            color: #475569;
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+
+        .packet-pill {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 9.5px;
+            color: #1e293b;
+            line-height: 1.3;
+        }
+
+        /* Center arrow link */
+        .link-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .arrow-line {
+            width: 100%;
+            height: 2px;
+            background: #2563eb;
+            position: relative;
+        }
+
+        .arrow-line::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border-width: 5px 0 5px 6px;
+            border-style: solid;
+            border-color: transparent transparent transparent #2563eb;
+        }
+
+        .link-text {
+            font-size: 8.5px;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Inside Host 1 Nested Structure */
+        .nested-grid {
+            display: grid;
+            grid-template-columns: 240px 240px;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .inner-box {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .nat-engine-box {
+            border-left: 3.5px solid #d97706;
+        }
+
+        .vm-box {
+            border-left: 3.5px solid #059669;
+            background: #f0fdf4;
+        }
+
+        .inner-title {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tag-dnat {
+            font-size: 8.5px;
+            background: #fef3c7;
+            color: #b45309;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        .tag-snat {
+            font-size: 8.5px;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        .rule-item {
+            font-size: 9.5px;
+            color: #334155;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+
+        .rule-item strong {
+            color: #0f172a;
+        }
+
+        /* Bottom Legend / Flow */
+        .flow-legend {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5px;
+            color: #475569;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .step-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <div class="diagram-title">
+            Topologi & Alur Translasi Port Forwarding (Destination NAT) Lintas-Host
+        </div>
+
+        <div class="diagram-grid">
+            <!-- HOST 2 CLIENT -->
+            <div class="node-box node-client">
+                <div class="node-header">
+                    <span>Host 2 (Klien)</span>
+                    <span class="ip-pill ip-pill-client">172.20.10.5</span>
+                </div>
+                <div class="node-desc">
+                    Laptop fisik pengirim request HTTP melalui peramban web di jaringan LAN lokal.
+                </div>
+                <div class="packet-pill">
+                    <strong>TCP SYN Packet:</strong><br>
+                    Src: 172.20.10.5:54321<br>
+                    Dst: 172.20.10.8:8080
+                </div>
+            </div>
+
+            <!-- LINK ARROW -->
+            <div class="link-column">
+                <span class="link-text">Wi-Fi LAN<br>Layer 2/3</span>
+                <div class="arrow-line"></div>
+                <span class="link-text">Port 8080</span>
+            </div>
+
+            <!-- HOST 1 PHYSICAL + VM -->
+            <div class="node-box node-host1">
+                <div class="node-header">
+                    <span>Host 1 (Windows Fisik & Hypervisor VirtualBox)</span>
+                    <span class="ip-pill">Wi-Fi: 172.20.10.8</span>
+                </div>
+                <div class="node-desc" style="margin-bottom: 4px;">
+                    Windows Firewall mengizinkan Inbound TCP 8080. VirtualBox NAT Engine listening pada <code>0.0.0.0:8080</code>.
+                </div>
+
+                <!-- SUB GRID INSIDE HOST 1 -->
+                <div class="nested-grid">
+                    <!-- NAT ENGINE -->
+                    <div class="inner-box nat-engine-box">
+                        <div class="inner-title">
+                            <span>VirtualBox NAT Engine</span>
+                            <span class="tag-dnat">DNAT / SNAT</span>
+                        </div>
+                        <div class="rule-item">
+                            &bull; <strong>DNAT:</strong> Dst diubah ke <code>10.0.2.15:8080</code>
+                        </div>
+                        <div class="rule-item">
+                            &bull; <strong>SNAT:</strong> Src diubah ke <code>10.0.2.2</code> (Gateway)
+                        </div>
+                        <div class="packet-pill" style="font-size: 8.5px; background: #fffbeb;">
+                            Paket Masuk VM:<br>
+                            Src: 10.0.2.2:PortVirtual<br>
+                            Dst: 10.0.2.15:8080
+                        </div>
+                    </div>
+
+                    <!-- GUEST VM -->
+                    <div class="inner-box vm-box">
+                        <div class="inner-title">
+                            <span>Guest VM: Alpine Linux</span>
+                            <span class="ip-pill ip-pill-vm">10.0.2.15</span>
+                        </div>
+                        <div class="rule-item">
+                            &bull; Interface: <strong>eth0</strong> (Subnet 10.0.2.0/24)
+                        </div>
+                        <div class="rule-item">
+                            &bull; Default Gateway: <strong>10.0.2.2</strong>
+                        </div>
+                        <div class="packet-pill" style="font-size: 8.5px; background: #ecfdf5; border-color: #a7f3d0;">
+                            <strong>Web Server (Flask Python):</strong><br>
+                            Port: 8080 | Status: HTTP 200 OK<br>
+                            Query DB Host: 10.0.2.2:3306
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-legend">
+            <div class="flow-step">
+                <div class="step-circle">1</div>
+                <span>Host 2 kirim SYN ke 172.20.10.8:8080</span>
+            </div>
+            <div class="flow-step">
+                <div class="step-circle">2</div>
+                <span>NAT Engine ubah Dst -> 10.0.2.15:8080 (DNAT)</span>
+            </div>
+            <div class="flow-step">
+                <div class="step-circle">3</div>
+                <span>Web Server VM proses query MySQL</span>
+            </div>
+            <div class="flow-step">
+                <div class="step-circle">4</div>
+                <span>NAT kembalikan Src -> 172.20.10.8 (Reverse NAT)</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
