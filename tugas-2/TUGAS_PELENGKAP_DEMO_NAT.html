@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Pelengkap Demo - Akses Web Server melalui NAT</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 18mm 20mm 18mm 20mm;
+        }
+
+        :root {
+            --text-color: #111827;
+            --muted-color: #4b5563;
+            --border-color: #e5e7eb;
+            --code-bg: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #ffffff;
+            line-height: 1.45;
+            font-size: 9.5pt;
+        }
+
+        .header {
+            border-bottom: 1.5pt solid #1f2937;
+            padding-bottom: 6pt;
+            margin-bottom: 10pt;
+        }
+
+        .header h1 {
+            font-size: 13pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            line-height: 1.25;
+            margin-bottom: 4pt;
+            color: #0f172a;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-size: 8.5pt;
+            color: var(--muted-color);
+            line-height: 1.35;
+        }
+
+        .meta-right {
+            text-align: right;
+        }
+
+        h2 {
+            font-size: 10pt;
+            font-weight: 700;
+            margin-top: 8pt;
+            margin-bottom: 3pt;
+            color: #0f172a;
+            border-bottom: 0.5pt solid var(--border-color);
+            padding-bottom: 2pt;
+        }
+
+        p {
+            margin-bottom: 5pt;
+            text-align: justify;
+        }
+
+        .ascii-diagram {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 7.5pt;
+            background-color: var(--code-bg);
+            border: 0.5pt solid var(--border-color);
+            border-radius: 4pt;
+            padding: 4pt 8pt;
+            margin: 5pt 0;
+            line-height: 1.3;
+            white-space: pre;
+        }
+
+        ol, ul {
+            margin-left: 14pt;
+            margin-bottom: 5pt;
+        }
+
+        li {
+            margin-bottom: 2.5pt;
+            text-align: justify;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            background-color: var(--code-bg);
+            padding: 1pt 3pt;
+            border-radius: 2pt;
+            font-size: 8.5pt;
+        }
+
+        .highlight-box {
+            background-color: #f8fafc;
+            border-left: 2.5pt solid #2563eb;
+            padding: 4pt 8pt;
+            margin: 5pt 0;
+            font-size: 8.8pt;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Mekanisme Akses Web Server pada Host 1 oleh Host 2 Melalui Network Address Translation (NAT) dan Port Forwarding</h1>
+        <div class="meta-grid">
+            <div>
+                <strong>Mata Kuliah:</strong> Jaringan Komputer Lanjut (A)<br>
+                <strong>Institusi:</strong> Institut Teknologi Sepuluh Nopember (ITS)
+            </div>
+            <div class="meta-right">
+                <strong>Kelompok:</strong> Dzaky Haady & Nicholas Benaya<br>
+                <strong>Topik:</strong> Tugas Pelengkap Demonstrasi Virtualisasi
+            </div>
+        </div>
+    </div>
+
+    <h2>1. Topologi dan Batasan Akses Langsung pada Mode NAT</h2>
+    <p>
+        Arsitektur pengujian melibatkan dua komputer fisik pada jaringan LAN lokal (Wi-Fi) yang sama. <strong>Host 1</strong> (Server) memiliki IP fisik <code>172.20.10.8</code> dan menjalankan hypervisor VirtualBox. Di dalam VirtualBox, berjalan mesin virtual <strong>VM1-Jarkom</strong> (Alpine Linux) yang mengeksekusi Web Server Flask pada port TCP <code>8080</code>. Antarmuka virtual VM (<code>eth0</code>) menerima alamat privat <code>10.0.2.15/24</code> dari DHCP internal VirtualBox. Sementara itu, <strong>Host 2</strong> bertindak sebagai klien di LAN fisik (misal IP <code>172.20.10.5</code>).
+    </p>
+    <p>
+        Secara default, mode jaringan <strong>NAT</strong> mengisolasi VM di dalam subnet virtual tersendiri. Alamat <code>10.0.2.15</code> bersifat <em>non-routable</em> di jaringan luar. Router LAN fisik tidak memiliki entri tabel perutean (*routing table*) menuju subnet <code>10.0.2.0/24</code>, sehingga paket yang dikirim langsung oleh Host 2 ke <code>10.0.2.15</code> akan langsung di-<em>drop</em>.
+    </p>
+
+    <div class="ascii-diagram">
+[ Host 2: Klien ] (172.20.10.5) ─── HTTP GET 172.20.10.8:8080 ───► [ Host 1: Windows Fisik ] (172.20.10.8)
+                                                                           │ VirtualBox NAT Engine (Port Forwarding)
+                                                                           │ Translasi DNAT: Dst -> 10.0.2.15:8080
+                                                                           ▼ Translasi SNAT: Src -> 10.0.2.2:PortVirtual
+                                                                    [ Guest VM: Alpine Linux ] (10.0.2.15:8080)
+    </div>
+
+    <h2>2. Prinsip Kerja Port Forwarding (Destination NAT pada Layer 4)</h2>
+    <p>
+        Untuk menjembatani akses tanpa mengubah adaptor VM menjadi <em>Bridged</em>, diterapkan konfigurasi <strong>Port Forwarding</strong> pada VirtualBox: <code>TCP | Host: 0.0.0.0:8080 -&gt; Guest: 10.0.2.15:8080</code>. Konfigurasi ini memerintahkan driver VirtualBox pada Host 1 untuk membuka *socket listening* pada seluruh interface host (<code>0.0.0.0:8080</code>). Setiap segmen TCP yang menuju port 8080 pada IP fisik Host 1 dicegat oleh engine NAT dan ditranslasikan ke dalam VM.
+    </p>
+
+    <h2>3. Siklus Alur Perjalanan Paket Data (Packet Walkthrough)</h2>
+    <ol>
+        <li>
+            <strong>Permintaan dari Host 2 (Outbound Client Request):</strong> Peramban di Host 2 mengirim paket TCP SYN ke alamat fisik Host 1: <code>[Src: 172.20.10.5:54321, Dst: 172.20.10.8:8080]</code>. Paket melintasi switch/router Wi-Fi LAN menuju kartu jaringan fisik Host 1.
+        </li>
+        <li>
+            <strong>Penerimaan dan Translasi Ganda oleh VirtualBox (DNAT &amp; SNAT):</strong> Windows Firewall mengizinkan paket masuk pada port 8080. Engine NAT VirtualBox mencegat paket pada soket yang terbuka dan mengeksekusi dua translasi header:
+            <ul>
+                <li><strong>Destination NAT (DNAT):</strong> Mengubah alamat tujuan dari <code>172.20.10.8:8080</code> menjadi alamat IP privat guest <code>10.0.2.15:8080</code>.</li>
+                <li><strong>Source NAT (SNAT):</strong> Mengubah alamat sumber dari <code>172.20.10.5</code> menjadi alamat gateway virtual <code>10.0.2.2</code>. Langkah ini krusial agar paket balasan dari kernel VM otomatis dikembalikan ke interface virtual gateway NAT Host 1.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Pemrosesan oleh Web Server di VM:</strong> Paket masuk melalui antarmuka <code>eth0</code> VM. Kernel Alpine Linux menyerahkan muatan ke proses Python Flask. Web server memproses kueri telemetri ke database MySQL di Host 1 (<code>10.0.2.2:3306</code>), menyusun response HTTP 200 OK, lalu mengirimkannya kembali ke default gateway <code>10.0.2.2</code>.
+        </li>
+        <li>
+            <strong>Jalur Balik Respons (Reverse Address Translation):</strong> Engine NAT VirtualBox menerima respons dari VM, mencocokkan *session state table*, mengembalikan alamat asal menjadi <code>172.20.10.8:8080</code>, dan mengarahkan tujuan kembali ke <code>172.20.10.5:54321</code> melalui stack TCP/IP Windows fisik.
+        </li>
+        <li>
+            <strong>Penerimaan di Host 2:</strong> Host 2 menerima paket balasan dan merender dashboard IoT secara transparan tanpa perlu mengetahui bahwa server fisik di belakangnya berada dalam lingkungan virtual terisolasi.
+        </li>
+    </ol>
+
+    <h2>4. Kesimpulan</h2>
+    <p>
+        Mekanisme Port Forwarding VirtualBox menyelesaikan masalah isolasi perutean pada mode NAT melalui kombinasi <em>socket binding</em> pada Host OS serta translasi alamat Layer 4 (DNAT dan SNAT). Pendekatan ini menjaga keamanan host virtual karena antarmuka VM tetap terisolasi dari pemindaian langsung di LAN luar, namun layanannya tetap dapat diakses secara publik dan efisien oleh Host 2.
+    </p>
+
+</body>
+</html>
