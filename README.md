@@ -16,11 +16,14 @@ Repositori ini memuat seluruh implementasi, arsitektur sistem, dokumentasi tekni
 
 ## Daftar Modul Tugas
 
-### 📂 [Tugas 1: Virtualisasi Hypervisor Tipe 2 & Implementasi Komunikasi IPv6](LAPORAN_TUGAS_1_JARKOMLAN.md)
+### 📂 [Tugas 1: Virtualisasi Hypervisor Tipe 2 & Implementasi Komunikasi IPv6](tugas-1/README.md)
 * **Topik:** Perancangan lingkungan virtualisasi multi-node (minimal 2 Virtual Machine) dan evaluasi komunikasi jaringan berbasis protokol **IPv6 ULA** (`fd00:db8:1::/64`).
 * **Dokumentasi Terkait:**
-  - 📄 **[LAPORAN_TUGAS_1_JARKOMLAN.md](LAPORAN_TUGAS_1_JARKOMLAN.md)** — Laporan akademik formal dan landasan teori komparasi OS & Hypervisor.
-  - 📘 **[PANDUAN_TUGAS_DAN_DEMO.md](PANDUAN_TUGAS_DAN_DEMO.md)** — Decision matrix, packet flow, dan panduan presentasi Tugas 1.
+  - 📘 **[tugas-1/README.md](tugas-1/README.md)** — Dokumentasi arsitektur, topologi jaringan internal, dan rekap hasil pengujian.
+  - 📄 **[tugas-1/LAPORAN_TUGAS_1_JARKOMLAN.md](tugas-1/LAPORAN_TUGAS_1_JARKOMLAN.md)** — Laporan akademik formal dan landasan teori komparasi OS & Hypervisor.
+  - 📋 **[tugas-1/PANDUAN_TUGAS_DAN_DEMO.md](tugas-1/PANDUAN_TUGAS_DAN_DEMO.md)** — Decision matrix, packet flow, dan materi presentasi demonstrasi lab.
+  - 📁 **`tugas-1/scripts/`** — Skrip otomasi antarmuka jaringan Shell (`setup_vm1.sh`, `setup_vm2.sh`) dan PowerShell (`setup_vm1.ps1`, `setup_vm2.ps1`).
+  - 📁 **`tugas-1/screenshots/`** — Bukti tangkapan layar pengujian ping ICMPv6 antar-VM.
 
 ---
 
@@ -33,7 +36,6 @@ Repositori ini memuat seluruh implementasi, arsitektur sistem, dokumentasi tekni
   - 📁 **`tugas-2/host1/`** — Kode sumber Docker, skrip startup VM, dan firewall rule untuk Host 1.
   - 📁 **`tugas-2/host2/`** — Kode sumber Docker Publisher dan Web Client untuk Host 2.
   - 📁 **`tugas-2/screenshots/`** — Arsip bukti tangkapan layar pengujian jaringan dan web server di VM.
-
 
 ---
 
