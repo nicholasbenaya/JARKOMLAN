@@ -1,0 +1,9 @@
+services:
+  node4_docker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: jarkom-cluster-node4-docker
+    restart: unless-stopped
+    ports:
+      - "5004:5004"

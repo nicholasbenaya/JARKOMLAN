@@ -33,3 +33,16 @@ Repositori ini memuat seluruh implementasi, arsitektur sistem, dokumentasi tekni
   - 📁 **`tugas-2/host1/`** — Kode sumber Docker, skrip startup VM, dan firewall rule untuk Host 1.
   - 📁 **`tugas-2/host2/`** — Kode sumber Docker Publisher dan Web Client untuk Host 2.
   - 📁 **`tugas-2/screenshots/`** — Arsip bukti tangkapan layar pengujian jaringan dan web server di VM.
+
+
+---
+
+### 📂 [Tugas 3: Cached Proxy (Squid) & Reverse Proxy Load Balancer (Nginx)](tugas-3/README.md)
+* **Topik:** Perancangan dua sistem perantara jaringan (*network proxy*):
+  1. **Cached Proxy (Forward Proxy)** menggunakan **Squid Proxy Server** dengan strategi caching file, analisis `TCP_HIT` vs `TCP_MISS`, dan evaluasi ketersediaan saat origin offline.
+  2. **Reverse Proxy & Load Balancer** menggunakan **Nginx** di depan kluster 4 backend multi-platform (**Windows Native, 2 VirtualBox Linux VM, dan Docker Container**) dengan distribusi beban *Round Robin* yang diuji secara langsung melalui smartphone client.
+* **Dokumentasi Terkait:**
+  - 📘 **[tugas-3/README.md](tugas-3/README.md)** — Dokumentasi komprehensif, topologi sistem 2-Host + Smartphone, matriks port, dan pembagian tugas kelompok 4 orang.
+  - 📋 **[tugas-3/PANDUAN_TUGAS_3_DAN_DEMO.md](tugas-3/PANDUAN_TUGAS_3_DAN_DEMO.md)** — Panduan operasional langkah demi langkah, SOP uji coba smartphone, naskah demo, dan FAQ evaluasi lab.
+  - 📁 **`tugas-3/host1/`** — Script backend cluster (`server_node.py`, `start_cluster.ps1`), Docker Node 4, dan Squid Proxy.
+  - 📁 **`tugas-3/host2/`** — Konfigurasi Nginx Reverse Proxy, Origin Web Server, dan skrip benchmarking dummy load test.

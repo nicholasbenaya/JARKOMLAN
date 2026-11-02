@@ -1,0 +1,15 @@
+services:
+  squid:
+    image: ubuntu/squid:5.2-22.04_beta
+    container_name: jarkom-squid-proxy
+    restart: unless-stopped
+    ports:
+      - "3128:3128"
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+      - squid_cache:/var/spool/squid
+      - squid_log:/var/log/squid
+
+volumes:
+  squid_cache:
+  squid_log:

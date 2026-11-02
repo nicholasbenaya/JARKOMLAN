@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Origin Web Server - Uji Coba Squid Proxy Cache</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 24px;
+            max-width: 600px;
+            margin: 40px auto;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #0284c7; }
+        .alert {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 12px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+        .code {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            font-family: monospace;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Origin Web Server (Host 2)</h1>
+    <p>Halaman ini disajikan langsung dari web server sumber di <strong>Host 2</strong>.</p>
+    
+    <div class="alert">
+        <strong>Status Caching:</strong> Header <span class="code">Cache-Control: public, max-age=3600</span> aktif.
+    </div>
+
+    <h3>Pembuktian Caching Squid Proxy:</h3>
+    <ul>
+        <li><strong>Akses Pertama (Cache MISS):</strong> Squid Proxy di Host 1 akan menghubungi server ini untuk mengunduh halaman. Terminal Origin Server akan mencatat log <code>[ORIGIN HIT]</code>.</li>
+        <li><strong>Akses Kedua (Cache HIT):</strong> Squid Proxy langsung menyajikan halaman dari memori cache-nya. Terminal Origin Server <em>tidak akan mencatat log apa pun</em>!</li>
+    </ul>
+
+    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+    <p style="font-size: 0.85rem; color: #64748b;">Praktikum Jaringan Komputer dan Komunikasi Data (JARKOMLAN) - Tugas 3</p>
+</body>
+</html>

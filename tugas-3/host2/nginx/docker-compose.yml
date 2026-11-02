@@ -1,0 +1,9 @@
+services:
+  reverse_proxy:
+    image: nginx:alpine
+    container_name: jarkom-nginx-reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
