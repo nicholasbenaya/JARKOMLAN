@@ -101,6 +101,7 @@ flowchart TB
 2. Double-click file:
    👉 **`start_tunnel_online.bat`**
 3. Pilih opsi **`1`** (*Reverse Proxy & Load Balancer - Port 80*).
+   > 💡 **Catatan Mengenai Password:** Pinggy **TIDAK memerlukan password**. Pinggy menggunakan sistem SSH Key gratis. Script `start_tunnel_online.bat` sudah otomatis membuat SSH key di laptop Host 1 jika belum ada. Jika sebelumnya muncul pertanyaan password, cukup tarik update terbaru (`git pull`) atau jalankan perintah `ssh-keygen -t ed25519 -N "" -f "%USERPROFILE%\.ssh\id_ed25519"`.
 4. Jendela CMD Pinggy akan muncul menampilkan URL publik HTTPS, misalnya:
    ```text
    ==============================================================

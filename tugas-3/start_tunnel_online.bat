@@ -1,6 +1,16 @@
 @echo off
 TITLE JARKOMLAN Tugas 3 - Port Tunneling Online (Pinggy)
 color 0B
+
+:: Pastikan SSH Key sudah ada (Pinggy login gratis via SSH Key, bukan password)
+if not exist "%USERPROFILE%\.ssh" mkdir "%USERPROFILE%\.ssh" >nul 2>&1
+if not exist "%USERPROFILE%\.ssh\id_ed25519" if not exist "%USERPROFILE%\.ssh\id_rsa" (
+    echo [i] Membuat SSH key gratis untuk Pinggy (tanpa password)...
+    ssh-keygen -t ed25519 -N "" -f "%USERPROFILE%\.ssh\id_ed25519" -q >nul 2>&1
+    echo [OK] SSH key berhasil disiapkan.
+    echo.
+)
+
 echo ============================================================
 echo   JARKOMLAN TUGAS 3: MEMBUKA AKSES ONLINE VIA INTERNET
 echo ============================================================
