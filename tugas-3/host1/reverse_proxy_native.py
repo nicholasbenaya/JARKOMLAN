@@ -7,12 +7,12 @@ import argparse
 from datetime import datetime
 
 # ==============================================================================
-# Pure Python Reverse Proxy & Load Balancer (No Dependencies Required)
+# Pure Python Reverse Proxy & Load Balancer - Host 1 Model A (Zero Config)
 # ==============================================================================
 
 class ReverseProxyHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        pass # Ditangani custom di do_GET/do_POST
+        pass # Ditangani custom
 
     def forward_request(self, method):
         target_backend = next(self.server.backend_cycle)
@@ -29,7 +29,7 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
 
         req = urllib.request.Request(target_url, data=body, headers=headers, method=method)
 
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [PROXY] {self.client_address[0]} -> {target_backend} ({self.path})")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [PROXY] Klien {self.client_address[0]} -> {target_backend} ({self.path})")
 
         try:
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -39,7 +39,7 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
                     if header.lower() not in ['transfer-encoding', 'content-length', 'connection']:
                         self.send_header(header, val)
                 self.send_header('Content-Length', str(len(resp_body)))
-                self.send_header('X-Served-By-Proxy', 'JARKOMLAN-ReverseProxy-Native')
+                self.send_header('X-Served-By-Proxy', 'Host1-ReverseProxy-Native')
                 self.end_headers()
                 self.wfile.write(resp_body)
         except urllib.error.HTTPError as e:
@@ -67,16 +67,16 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
         self.forward_request('HEAD')
 
 def run():
-    parser = argparse.ArgumentParser(description="Python Native Reverse Proxy Load Balancer")
+    parser = argparse.ArgumentParser(description="Host 1 Native Reverse Proxy Load Balancer")
     parser.add_argument("--port", type=int, default=80, help="Port proxy mendengarkan (default 80)")
-    parser.add_argument("--host1-ip", type=str, default="127.0.0.1", help="Alamat IP LAN Host 1")
     args = parser.parse_args()
 
+    # 4 Node Backend Lokal di Host 1
     backend_nodes = [
-        f"http://{args.host1_ip}:5001",
-        f"http://{args.host1_ip}:5002",
-        f"http://{args.host1_ip}:5003",
-        f"http://{args.host1_ip}:5004",
+        "http://127.0.0.1:5001", # Node 1: Windows Native
+        "http://127.0.0.1:5002", # Node 2: VirtualBox Linux VM 1
+        "http://127.0.0.1:5003", # Node 3: VirtualBox Linux VM 2
+        "http://127.0.0.1:5004", # Node 4: Docker Container
     ]
 
     server_address = ('0.0.0.0', args.port)
@@ -91,9 +91,9 @@ def run():
     httpd.backend_cycle = itertools.cycle(backend_nodes)
 
     print("==================================================")
-    print(" REVERSE PROXY & LOAD BALANCER NATIVE AKTIF       ")
+    print(" REVERSE PROXY & LOAD BALANCER (HOST 1) AKTIF     ")
     print(f" Listening: http://0.0.0.0:{args.port}          ")
-    print(f" Upstream Cluster Host 1 ({args.host1_ip}):     ")
+    print(" Upstream Cluster Backend (Lokal):                ")
     for node in backend_nodes:
         print(f"  - {node}")
     print("==================================================")

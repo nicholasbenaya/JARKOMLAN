@@ -1,24 +1,24 @@
-# Panduan Demonstrasi Online (Akses Internet Jarak Jauh)
+# Panduan Demonstrasi Online (Akses Internet Jarak Jauh) - Model A
 ## Praktikum Jaringan Komputer dan LAN (JARKOMLAN) - Tugas 3
 ### Topik: Cached Proxy (Squid) & Reverse Proxy Load Balancer (Nginx) via Pinggy Tunneling
 
-Panduan ini disusun khusus untuk skenario pengujian dan demonstrasi **jarak jauh (online)**:
-* Anggota kelompok berada di rumah/lokasi berbeda.
-* Pengujian dari **Smartphone (HP)** menggunakan **paket data seluler (4G/5G)** tanpa perlu tethering Wi-Fi.
-* Demonstrasi daring di hadapan Dosen/Asisten Lab melalui **Google Meet / Zoom**.
+Panduan ini disusun khusus untuk skenario pengujian dan demonstrasi **jarak jauh (online)** dengan arsitektur **Model A**:
+* **Host 1 (Laptop 1):** Pusat Server, Reverse Proxy Load Balancer, Squid Proxy, dan Kluster 4 Backend.
+* **Host 2 (Laptop 2):** Partner Luar / Origin Web Server & Penguji Beban (*Traffic Generator*).
+* **Smartphone (HP):** Pengujian dari browser HP menggunakan **paket data seluler (4G/5G)** tanpa perlu tethering Wi-Fi.
 
 ---
 
-## 1. Arsitektur Jaringan Online (Port Tunneling)
+## 1. Arsitektur Jaringan Online Model A (Port Tunneling)
 
-Dengan memanfaatkan **Pinggy SSH Reverse Tunneling** (melalui port 443 outbound yang kebal blokir firewall), port lokal pada laptop diekspos secara aman ke *edge server* publik:
+Dengan memanfaatkan **Pinggy SSH Reverse Tunneling** (melalui port 443 outbound yang kebal blokir firewall), port lokal Host 1 diekspos secara aman ke *edge server* publik:
 
 ```mermaid
 flowchart TB
     subgraph Internet["Jaringan Internet Publik (Anywhere / 4G / 5G / Zoom)"]
         direction TB
         HP["📱 Smartphone HP (Paket Data 4G/5G)\nAkses Browser: https://xxxx.free.pinggy.link"]
-        Dosen["💻 Browser Dosen / Teman Remote\nAkses URL Publik atau Dummy Benchmark"]
+        H2["💻 HOST 2 (Laptop Teman Remote)\nPenguji Beban: run_load_test.bat"]
     end
 
     subgraph PinggyCloud["Pinggy Edge Cloud Infrastructure"]
@@ -26,21 +26,21 @@ flowchart TB
         EdgeTCP["Public TCP Proxy Relay\n(a.pinggy.io:XXXXX)"]
     end
 
-    subgraph LocalSetup["Lingkungan Lokal Praktikum"]
-        subgraph H2["Host 2 (Laptop Gateway)"]
+    subgraph LocalSetup["Lingkungan Praktikum (Model A)"]
+        subgraph H1["Host 1 (Laptop 1 - Server Utama, Backend Cluster & Proxy)"]
             Tunnel["SSH Reverse Tunnel Client\n(start_tunnel_online.bat)"]
             Proxy["Reverse Proxy / Load Balancer\n(Port 80)"]
-            Origin["Origin Web Server\n(Port 8080)"]
+            Squid["Squid Proxy Cache\n(Port 3128)"]
+            Cluster["Kluster 4 Node Backend:\n• Port 5001 (Windows Native)\n• Port 5002 (VirtualBox VM 1)\n• Port 5003 (VirtualBox VM 2)\n• Port 5004 (Docker Container)"]
         end
 
-        subgraph H1["Host 1 (Laptop Cluster Backend)"]
-            Squid["Squid Proxy Cache\n(Port 3128)"]
-            Cluster["4 Node Backend Cluster:\n• Port 5001 (Windows Native)\n• Port 5002 (VirtualBox VM 1)\n• Port 5003 (VirtualBox VM 2)\n• Port 5004 (Docker Container)"]
+        subgraph H2Local["Host 2 (Laptop 2 - Origin Server)"]
+            Origin["Origin Web Server\n(Port 8080)"]
         end
     end
 
     HP -->|"1. Request via Internet (HTTPS)"| EdgeHTTP
-    Dosen -->|"1. Request via Internet (HTTPS)"| EdgeHTTP
+    H2 -->|"1. Request via Internet (HTTPS)"| EdgeHTTP
     EdgeHTTP <==|"2. Encrypted SSH Tunnel (Port 443)"|== Tunnel
     Tunnel -->|"3. Forward ke Port 80"| Proxy
     Proxy -->|"4. Round Robin Balancing"| Cluster
@@ -54,18 +54,16 @@ Skenario ini membuktikan ke Dosen/Aslab bahwa arsitektur cluster Anda bisa diaks
 
 ### Langkah demi Langkah:
 
-1. **Jalankan Backend Cluster di Host 1:**
+1. **Jalankan Backend Cluster & Reverse Proxy di Host 1:**
    * Di Host 1, double-click [`tugas-3/host1/start_cluster.bat`](file:///c:/Users/kegz/Desktop/Folder%20iko/Projects%20Local/JARKOMLAN/tugas-3/host1/start_cluster.bat).
+   * Skrip akan otomatis menyalakan Node 1 (Windows: 5001), Node 4 (Docker: 5004), dan Reverse Proxy (Port 80).
    * Jalankan VM 1 dan VM 2 di VirtualBox:
      ```bash
      sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e" # Di VM 1
      sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308" # Di VM 2
      ```
-2. **Jalankan Reverse Proxy di Host 2:**
-   * Di Host 2, double-click `tugas-3/host2/start_reverse_proxy.bat`.
-   * Masukkan IP Host 1, lalu pilih opsi `[1]` (Python Native) atau `[2]` (Nginx Docker).
-3. **Buka Akses Online via Tunnel:**
-   * Di Host 2, double-click file:
+2. **Buka Akses Online via Tunnel di Host 1:**
+   * Di Host 1, double-click file:
      👉 [`tugas-3/start_tunnel_online.bat`](file:///c:/Users/kegz/Desktop/Folder%20iko/Projects%20Local/JARKOMLAN/tugas-3/start_tunnel_online.bat)
    * Pilih opsi `[1]` (*Reverse Proxy & Load Balancer - Port 80*).
    * Sebuah jendela CMD baru akan muncul menampilkan URL publik, contohnya:
@@ -74,7 +72,8 @@ Skenario ini membuktikan ke Dosen/Aslab bahwa arsitektur cluster Anda bisa diaks
      URL Publik: https://rxyz-123-456.free.pinggy.link
      ==============================================================
      ```
-4. **Pengujian Langsung dari HP (Paket Data 4G/5G):**
+   *(Biarkan jendela CMD ini tetap terbuka selama sesi pengujian).*
+3. **Pengujian Langsung dari HP (Paket Data 4G/5G):**
    * Matikan Wi-Fi di HP Anda (pastikan murni memakai kuota seluler / data internet).
    * Buka browser Chrome / Safari di HP, lalu ketik URL publik dari Pinggy tersebut.
    * **Hasil:** Halaman web langsung muncul!
@@ -84,12 +83,11 @@ Skenario ini membuktikan ke Dosen/Aslab bahwa arsitektur cluster Anda bisa diaks
      * Refresh 3 $\rightarrow$ Kartu Kuning: `Node 3 - VirtualBox VM 2`
      * Refresh 4 $\rightarrow$ Kartu Ungu: `Node 4 - Docker Container`
      * Refresh 5 $\rightarrow$ Kembali ke Node 1.
-5. **Uji Beban Dummy (Benchmark) dari Laptop Teman Jarak Jauh:**
-   * Teman Anda di rumahnya membuka terminal, lalu menjalankan:
-     ```bash
-     python test_dummy_requests.py --url https://rxyz-123-456.free.pinggy.link -n 40
-     ```
-   * Terminal akan mencetak respon 40 request secara real-time dan menunjukkan persentase distribusi tepat 25% untuk setiap node!
+4. **Uji Beban Dummy (Benchmark) dari Laptop Teman (Host 2 Jarak Jauh):**
+   * Teman Anda di rumahnya membuka folder `tugas-3/host2/` dan menjalankan:
+     👉 `run_load_test.bat`
+   * Masukkan URL publik: `https://rxyz-123-456.free.pinggy.link`
+   * Terminal Host 2 akan mencetak respon 40 request secara real-time dan menunjukkan persentase distribusi tepat 25% untuk setiap node!
 
 ---
 
@@ -100,9 +98,10 @@ Skenario ini membuktikan fitur caching Squid bekerja meskipun klien mengakses da
 ### Langkah demi Langkah:
 
 1. **Jalankan Origin Server di Host 2:**
-   * Double-click `tugas-3/host2/start_origin_server.bat` (aktif di port `8080`).
+   * Di Host 2, double-click `start_origin_server.bat` (aktif di port `8080`).
+   * *(Jika Host 2 terpisah jarak jauh, Host 2 juga bisa membuka tunnel port 8080 via `start_tunnel_online.bat` opsi [3]).*
 2. **Jalankan Squid Proxy di Host 1:**
-   * Double-click [`tugas-3/host1/start_squid.bat`](file:///c:/Users/kegz/Desktop/Folder%20iko/Projects%20Local/JARKOMLAN/tugas-3/host1/start_squid.bat) (aktif di port `3128`).
+   * Di Host 1, double-click [`tugas-3/host1/start_squid.bat`](file:///c:/Users/kegz/Desktop/Folder%20iko/Projects%20Local/JARKOMLAN/tugas-3/host1/start_squid.bat) (aktif di port `3128`).
 3. **Buka Tunnel TCP untuk Squid di Host 1:**
    * Di Host 1, double-click [`tugas-3/start_tunnel_online.bat`](file:///c:/Users/kegz/Desktop/Folder%20iko/Projects%20Local/JARKOMLAN/tugas-3/start_tunnel_online.bat) $\rightarrow$ pilih opsi `[2]`.
    * Di jendela CMD akan muncul alamat TCP publik, contohnya:
@@ -126,19 +125,18 @@ Skenario ini membuktikan fitur caching Squid bekerja meskipun klien mengakses da
 Gunakan alur dan naskah ini saat giliran kelompok Anda presentasi daring:
 
 > **1. Pembukaan (Share Screen Terminal & Browser HP):**
-> *"Selamat pagi/siang Bapak/Ibu Dosen dan Rekan Asisten. Pada demonstrasi Tugas 3 ini, kelompok kami mengimplementasikan sistem **Reverse Proxy Load Balancer** dan **Cached Proxy** yang telah kami hubungkan ke internet publik melalui port tunneling terenkripsi, sehingga dapat diakses secara live dari luar jaringan lokal."*
+> *"Selamat pagi/siang Bapak/Ibu Dosen dan Rekan Asisten. Pada demonstrasi Tugas 3 ini, kelompok kami mengimplementasikan sistem **Reverse Proxy Load Balancer** dan **Cached Proxy** yang telah kami online-kan ke internet publik.*
+> 
+> *Saat ini di Host 1, kami mengorkestrasikan 4 node backend di 4 lingkungan berbeda: Windows Native, VM 1 Alpine, VM 2 Alpine, dan Docker WSL 2. Di Host 1 juga berjalan Reverse Proxy sebagai gateway tunggal yang kami buka ke publik via encrypted tunnel.*
+> 
+> *Untuk membuktikan sistem ini dapat diakses secara live oleh end-user, saya membuka URL publik ini langsung dari smartphone saya menggunakan koneksi seluler 4G mandiri.*
+> 
+> *(Sambil me-refresh layar HP di depan kamera/share screen)* *Dapat dilihat bahwa algoritma Round Robin membagi beban secara merata melayani request saya bergantian ke Windows, VM 1, VM 2, dan Docker tanpa bottleneck.*
+> 
+> *Ketika rekan saya menjalankan load test 40 requests dari rumahnya (Host 2), seluruh beban terdistribusi presisi masing-masing 25%."*
 
-> **2. Memperagakan Reverse Proxy (Load Balancing):**
-> *"Saat ini di laptop Host 1, kami mengaktifkan 4 server backend di 4 lingkungan berbeda: Windows Native, VM 1 Alpine, VM 2 Alpine, dan Docker WSL 2. Di Host 2, Nginx Reverse Proxy bertindak sebagai load balancer.*
-> 
-> *Untuk membuktikan bahwa sistem ini benar-benar online dan production-ready, kami membuka tunnel publik `https://rxyz-xxxx.free.pinggy.link`. Sekarang saya mengakses link ini melalui smartphone saya yang terhubung ke jaringan seluler 4G mandiri.*
-> 
-> *(Sambil me-refresh HP)* *Bisa dilihat, setiap kali refresh, algoritma Round Robin mendistribusikan beban secara bergiliran: pertama dilayani oleh Windows, kedua oleh VM 1, ketiga oleh VM 2, dan keempat oleh Docker.*
-> 
-> *Kemudian rekan saya dari lokasi rumah yang berbeda akan menjalankan automated load test sebanyak 40 request ke URL publik ini. (Rekan menjalankan script). Terlihat di terminal bahwa pembagian beban tercapai secara presisi masing-masing 25%."*
-
-> **3. Memperagakan Cached Proxy (Squid):**
-> *"Selanjutnya untuk Cached Proxy, Squid aktif di port 3128 dengan tunnel TCP publik. Ketika klien luar mengakses data pertama kali, terjadi **Cache MISS** di mana data diunduh dari Origin Server. Pada akses kedua, terjadi **Cache HIT** dengan latensi 0ms karena disuplai langsung dari disk cache Squid. Jika Origin Server kami matikan, halaman tetap bisa dibuka oleh klien dari internet."*
+> **2. Memperagakan Cached Proxy (Squid):**
+> *"Selanjutnya untuk Cached Proxy, Squid aktif di Host 1 port 3128 dan Origin Web Server aktif di Host 2 port 8080. Ketika klien luar mengakses data pertama kali, terjadi **Cache MISS** di mana data diunduh dari Origin Server Host 2. Pada akses kedua, terjadi **Cache HIT** dengan latensi 0ms karena disuplai langsung dari disk cache Squid. Jika Origin Server di Host 2 kami matikan, halaman tetap bisa dibuka oleh klien dari internet."*
 
 ---
 

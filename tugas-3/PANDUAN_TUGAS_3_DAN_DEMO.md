@@ -77,52 +77,39 @@ Membuktikan bahwa Squid Proxy di Host 1 mampu memotong jalur komunikasi ke Origi
 ## 3. Pelaksanaan Sub-Tugas 2: Reverse Proxy & Load Balancing (Nginx)
 
 ### Tujuan Demonstrasi
-Membuktikan bahwa Nginx di Host 2 mampu mendistribusikan lalu lintas dari klien (HP) secara merata ke 4 backend yang berjalan di lingkungan berbeda pada Host 1 (**Windows, VM 1, VM 2, dan Docker**).
+Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di Host 1 mampu mendistribusikan lalu lintas dari klien luar (HP & Host 2) secara merata ke 4 backend lokal (**Windows, VM 1, VM 2, dan Docker**).
 
 ### Langkah Operasional
 
-#### A. Di Host 1 (Backend Cluster):
-1. Buka PowerShell Administrator di folder `tugas-3/host1/`:
-   ```powershell
-   .\start_cluster.ps1
-   ```
-   *Skrip ini akan otomatis menyalakan Node 1 (Windows: port 5001) dan Node 4 (Docker: port 5004).*
+#### A. Di Host 1 (Laptop Anda - Backend Cluster & Reverse Proxy):
+1. Buka folder `tugas-3/host1/`, double-click:
+   👉 [`start_cluster.bat`](host1/start_cluster.bat)
+   *Skrip ini akan otomatis menyalakan Node 1 (Windows: port 5001), Node 4 (Docker: port 5004), dan Reverse Proxy (Port 80).*
 2. Nyalakan VirtualBox:
    * Di **VM 1**, jalankan terminal:
      ```bash
-     python3 server_node.py --port 5002 --name "Node 2 - Linux VM 1" --platform "VirtualBox VM 1" --color "#22c55e"
+     sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"
      ```
    * Di **VM 2**, jalankan terminal:
      ```bash
-     python3 server_node.py --port 5003 --name "Node 3 - Linux VM 2" --platform "VirtualBox VM 2" --color "#eab308"
+     sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"
      ```
-3. *Pastikan VirtualBox Port Forwarding sudah aktif:*
-   * Rule VM 1: Host Port `5002` $\rightarrow$ Guest Port `5002`.
-   * Rule VM 2: Host Port `5003` $\rightarrow$ Guest Port `5003`.
+3. *Pastikan VirtualBox Port Forwarding sudah aktif (sudah dikonfigurasi via `setup_vbox_network.ps1`):*
+   * VM 1: Host Port `5002` $\rightarrow$ Guest Port `5002`.
+   * VM 2: Host Port `5003` $\rightarrow$ Guest Port `5003`.
 
-#### B. Di Host 2 (Reverse Proxy Nginx):
-1. Buka file `tugas-3/host2/nginx/nginx.conf`.
-2. Pastikan alamat IP di bagian `upstream backend_nodes` sudah sesuai dengan IP Host 1:
-   ```nginx
-   upstream backend_nodes {
-       server 192.168.43.10:5001; # IP Host 1 Port 5001
-       server 192.168.43.10:5002; # IP Host 1 Port 5002
-       server 192.168.43.10:5003; # IP Host 1 Port 5003
-       server 192.168.43.10:5004; # IP Host 1 Port 5004
-   }
-   ```
-3. Jalankan container Nginx:
-   ```bash
-   cd tugas-3/host2/nginx
-   docker compose up -d
-   ```
+#### B. Di Host 2 (Laptop Teman - Traffic Generator):
+Teman Anda tidak perlu menjalankan server atau konfigurasi berat! Cukup gunakan skrip penguji:
+* Buka folder `tugas-3/host2/`, double-click:
+  👉 [`run_load_test.bat`](host2/run_load_test.bat)
+* Masukkan IP Host 1 Anda (contoh: `192.168.43.10`).
 
 #### C. Skenario Pembuktian saat Demo:
 
 ##### 1. Demonstrasi Visual Menggunakan Smartphone (HP):
 1. Pastikan Wi-Fi HP terhubung ke hotspot yang sama (Proxy Wi-Fi dalam kondisi **Off**).
 2. Buka browser HP (Google Chrome / Safari).
-3. Ketik alamat URL: `http://192.168.43.20/` (IP Host 2).
+3. Ketik alamat URL: `http://192.168.43.10/` (IP Host 1 Port 80).
 4. **Tunjukkan layar HP ke Dosen/Aslab sambil menekan tombol Refresh:**
    * **Refresh 1:** Kartu biru menyala $\rightarrow$ `"Node 1: Windows 11 Native"`.
    * **Refresh 2:** Kartu hijau menyala $\rightarrow$ `"Node 2: VirtualBox Linux VM 1"`.
@@ -130,14 +117,25 @@ Membuktikan bahwa Nginx di Host 2 mampu mendistribusikan lalu lintas dari klien 
    * **Refresh 4:** Kartu ungu menyala $\rightarrow$ `"Node 4: Docker Container (WSL 2)"`.
    * **Refresh 5:** Kembali ke Node 1 (siklus *Round Robin* terbukti!).
 
-##### 2. Demonstrasi Kuantitatif dengan Skrip Dummy Benchmark:
-1. Di terminal Host 2, jalankan skrip penembak request:
+##### 2. Demonstrasi Kuantitatif dengan Skrip Dummy Benchmark dari Host 2:
+1. Di laptop Host 2, jalankan `run_load_test.bat` (atau terminal):
    ```bash
-   python test_dummy_requests.py --url http://localhost/ -n 40
+   python test_dummy_requests.py --url http://192.168.43.10/ -n 40
    ```
 2. Skrip akan mengirim 40 permintaan secara cepat dan menampilkan tabel distribusi:
    ```
    ==================================================
+     HASIL DISTRIBUSI LOAD BALANCING (ROUND ROBIN)   
+   ==================================================
+    Nama Node                      | Jumlah Request | Persentase
+    -------------------------------+----------------+------------
+    Node 1 - Windows Native        | 10             |  25.00%
+    Node 2 - Linux VM 1            | 10             |  25.00%
+    Node 3 - Linux VM 2            | 10             |  25.00%
+    Node 4 - Docker Container      | 10             |  25.00%
+   ==================================================
+   ```
+   *Hasil ini memberikan bukti kuantitatif bahwa pembagian beban berjalan presisi 1:1:1:1.*
      HASIL DISTRIBUSI LOAD BALANCING (ROUND ROBIN)   
    ==================================================
     Nama Node                      | Jumlah Request | Persentase

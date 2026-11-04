@@ -49,30 +49,34 @@ flowchart LR
 
 ---
 
-### B. Sub-Tugas 2: Topologi Reverse Proxy & Load Balancer
-Reverse Proxy berdiri di depan kluster server backend untuk menyembunyikan arsitektur internal dan membagi beban permintaan (*load balancing*).
+### B. Sub-Tugas 2: Topologi Reverse Proxy & Load Balancer (Model A)
+Reverse Proxy berdiri di Host 1 sebagai pintu gerbang tunggal di depan kluster server backend lokal untuk menyembunyikan arsitektur internal dan membagi beban permintaan (*load balancing*) yang datang dari Host 2 dan HP.
 
 ```mermaid
 flowchart TB
-    Client["📱 Client Device (HP / Laptop Tester)\nAkses Langsung: http://IP_HOST_2/"]
-
-    subgraph H2["HOST 2 (Laptop 2 - Gateway / Load Balancer)"]
-        nginx["Nginx Reverse Proxy & Load Balancer\nPort 80 (HTTP)\nAlgoritma: Round Robin (1:1:1:1)"]
+    subgraph Clients["Klien Penguji (Eksternal)"]
+        HP["📱 Smartphone HP (Klien Nyata)\nBrowser: http://IP_HOST_1/"]
+        H2["💻 HOST 2 (Laptop Teman - Traffic Generator)\nSkrip: test_dummy_requests.py"]
     end
 
-    subgraph H1["HOST 1 (Laptop 1 - Backend Cluster Multi-Environment)"]
+    subgraph H1["HOST 1 (Laptop 1 - Server Utama & Proxy)"]
         direction TB
-        node1["Node 1: Windows 11 Native\nPort 5001 (TCP)"]
-        node2["Node 2: VirtualBox Linux VM 1 (NAT Port Forward)\nPort 5002 (TCP)"]
-        node3["Node 3: VirtualBox Linux VM 2 (NAT Port Forward)\nPort 5003 (TCP)"]
-        node4["Node 4: Docker Container (WSL 2)\nPort 5004 (TCP)"]
+        nginx["Reverse Proxy & Load Balancer\nPort 80 (HTTP)\nAlgoritma: Round Robin (1:1:1:1)"]
+
+        subgraph Cluster["Kluster 4 Node Backend Lokal"]
+            node1["Node 1: Windows 11 Native\nPort 5001 (TCP)"]
+            node2["Node 2: VirtualBox Linux VM 1 (NAT Port Forward)\nPort 5002 (TCP)"]
+            node3["Node 3: VirtualBox Linux VM 2 (NAT Port Forward)\nPort 5003 (TCP)"]
+            node4["Node 4: Docker Container (WSL 2)\nPort 5004 (TCP)"]
+        end
     end
 
-    Client -->|"HTTP Request (Port 80)"| nginx
-    nginx -->|"Request 1 (25%)"| node1
-    nginx -->|"Request 2 (25%)"| node2
-    nginx -->|"Request 3 (25%)"| node3
-    nginx -->|"Request 4 (25%)"| node4
+    HP -->|"1. HTTP Request (Port 80)"| nginx
+    H2 -->|"1. Automated Dummy Requests (Port 80)"| nginx
+    nginx -->|"Round Robin (25%)"| node1
+    nginx -->|"Round Robin (25%)"| node2
+    nginx -->|"Round Robin (25%)"| node3
+    nginx -->|"Round Robin (25%)"| node4
 ```
 
 ---
@@ -82,13 +86,14 @@ flowchart TB
 | Peran | Host Fisik | Komponen / Platform | Port | Protokol | Fungsi Utama |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Forward Proxy** | Host 1 | Squid Proxy Server | `3128` | HTTP/TCP | Caching proxy untuk Client HP |
-| **Origin Web Server** | Host 2 | Python / Nginx Origin | `8080` | HTTP/TCP | Server sumber konten untuk Cached Proxy |
-| **Reverse Proxy** | Host 2 | Nginx Load Balancer | `80` | HTTP/TCP | Pintu masuk tunggal & distributor beban |
+| **Origin Web Server** | Host 2 | Python Origin Server | `8080` | HTTP/TCP | Server sumber konten untuk Cached Proxy |
+| **Reverse Proxy** | Host 1 | Nginx / Python Native | `80` | HTTP/TCP | Pintu masuk tunggal & distributor beban |
 | **Backend Node 1** | Host 1 | Windows Native Python | `5001` | HTTP/TCP | Eksekusi server langsung di OS Windows |
 | **Backend Node 2** | Host 1 | VirtualBox VM 1 (Linux) | `5002` | HTTP/TCP | Eksekusi server di VM 1 (Forwarding 5002) |
 | **Backend Node 3** | Host 1 | VirtualBox VM 2 (Linux) | `5003` | HTTP/TCP | Eksekusi server di VM 2 (Forwarding 5003) |
 | **Backend Node 4** | Host 1 | Docker Container | `5004` | HTTP/TCP | Eksekusi server berbasis kontainer Docker |
-| **Real Client** | Smartphone | Browser Chrome / Safari | Outbound | HTTP | Menguji respon visual & perputaran node |
+| **External Tester** | Host 2 | Benchmark Script | Outbound | HTTP | Mengirim dummy request uji load balancing |
+| **Real Client** | Smartphone | Browser Chrome / Safari | Outbound | HTTP | Menguji respon visual & perputaran kartu node |
 
 ---
 
@@ -96,14 +101,14 @@ flowchart TB
 
 ### A. Cached Proxy (Squid)
 - **Apa itu Squid?** Squid adalah aplikasi proxy dan cache berkinerja tinggi. Squid bertindak sebagai penengah antara klien dan internet atau server lokal.
-- **Cache MISS:** Terjadi ketika objek yang diminta klien belum pernah disimpan di memori/disk Squid. Squid akan meneruskan request ke Origin Web Server, mengunduhnya, menyimpan salinannya, lalu menyerahkannya ke klien.
+- **Cache MISS:** Terjadi ketika objek yang diminta klien belum pernah disimpan di memori/disk Squid. Squid akan meneruskan request ke Origin Web Server di Host 2, mengunduhnya, menyimpan salinannya, lalu menyerahkannya ke klien.
 - **Cache HIT:** Terjadi ketika objek yang diminta sudah ada di penyimpanan lokal Squid dan masa berlakunya masih valid (*fresh*). Squid langsung merespons ke klien tanpa menghubungi server asal, mengeliminasi beban jaringan ke server tujuan.
-- **Header `Cache-Control`:** Origin Server menyematkan header `Cache-Control: public, max-age=3600` yang memberikan otoritas kepada Squid untuk menyimpan konten selama 1 jam.
+- **Header `Cache-Control`:** Origin Server di Host 2 menyematkan header `Cache-Control: public, max-age=3600` yang memberikan otoritas kepada Squid untuk menyimpan konten selama 1 jam.
 
-### B. Reverse Proxy & Load Balancing (Nginx)
-- **Pintu Gerbang Tunggal:** Klien luar (HP) hanya mengetahui satu alamat IP publik/gateway (yaitu IP Host 2 port 80). Klien sama sekali tidak mengetahui keberadaan IP dan port backend di Host 1 (*security through obscurity*).
-- **Algoritma Round Robin:** Nginx mendistribusikan permintaan secara bergiliran menurut daftar `upstream` yang didefinisikan. Jika ada 4 server, maka urutan distribusi adalah `Node 1 -> Node 2 -> Node 3 -> Node 4 -> Node 1 -> ...`.
-- **Failover / High Availability:** Jika salah satu node mati (misal VM 1 dimatikan), Nginx secara otomatis mendeteksi kegagalan tersebut (`max_fails=3 fail_timeout=10s`) dan mengalihkan request ke 3 node yang masih sehat tanpa menimbulkan *downtime* pada sisi klien.
+### B. Reverse Proxy & Load Balancing (Model A)
+- **Pintu Gerbang Tunggal di Host 1:** Klien luar (HP dan Host 2) hanya mengetahui satu alamat IP publik/gateway (yaitu IP Host 1 port 80). Klien sama sekali tidak mengetahui keberadaan IP dan port backend privat di Host 1 (*security through obscurity*).
+- **Algoritma Round Robin:** Reverse Proxy mendistribusikan permintaan secara bergiliran menurut daftar `upstream` lokal (`127.0.0.1:5001 - :5004`). Urutan distribusi: `Node 1 -> Node 2 -> Node 3 -> Node 4 -> Node 1 -> ...`.
+- **Failover / High Availability:** Jika salah satu node mati (misal VM 1 dimatikan), Reverse Proxy secara otomatis mendeteksi kegagalan tersebut dan mengalihkan request ke 3 node yang masih sehat.
 
 ---
 
@@ -112,9 +117,9 @@ flowchart TB
 | Anggota Tim | Peran Utama | Tanggung Jawab Operasional |
 | :--- | :--- | :--- |
 | **Anggota 1** | **Host 1 Cluster Operator** | • Mengelola 4 backend di Host 1 (Windows, VM 1, VM 2, Docker)<br>• Memastikan port 5001–5004 terbuka dan firewall mengizinkan koneksi dari LAN |
-| **Anggota 2** | **Host 2 Proxy & Gateway Operator** | • Mengonfigurasi `nginx.conf` di Host 2 sesuai IP LAN Host 1<br>• Menjalankan Nginx Load Balancer dan Origin Server (port 8080) |
-| **Anggota 3** | **Squid & Caching Specialist** | • Mengonfigurasi `squid.conf` di Host 1 port 3128<br>• Menganalisis log Squid (`access.log`) untuk memvalidasi `TCP_HIT` vs `TCP_MISS` |
-| **Anggota 4** | **Client Testing & Benchmarking Lead** | • Mengatur manual proxy pada HP untuk demo live<br>• Menjalankan skrip `test_dummy_requests.py` untuk mengukur persentase beban |
+| **Anggota 2** | **Host 1 Proxy Operator** | • Mengelola Reverse Proxy di Host 1 (Port 80) & Squid Proxy (Port 3128)<br>• Memantau log akses real-time (`access.log` Squid & Proxy) |
+| **Anggota 3** | **Host 2 Operator (Partner/Tester)** | • Menjalankan Origin Web Server (Port 8080) di Host 2<br>• Menjalankan skrip benchmarking `run_load_test.bat` dari Host 2 |
+| **Anggota 4** | **Client Testing & Documentation Lead** | • Mengatur manual proxy pada HP untuk demo live<br>• Menampilkan rotasi kartu node di browser HP ke dosen saat demo |
 
 ---
 
@@ -136,32 +141,29 @@ flowchart TB
    python3 server_node.py --port 5003 --name "Node 3 - Linux VM 2" --platform "VirtualBox VM 2" --color "#eab308"
    ```
 
-### Langkah 3: Menjalankan Host 2 (Reverse Proxy Nginx)
-1. Buka file `tugas-3/host2/nginx/nginx.conf`, sesuaikan alamat IP di bagian `upstream backend_nodes` dengan IP Host 1 Anda.
-2. Jalankan Nginx via Docker:
-   ```bash
-   cd tugas-3/host2/nginx
-   docker compose up -d
-   ```
+### Langkah 3: Menjalankan Host 1 (Reverse Proxy & Load Balancer)
+1. Di folder `tugas-3/host1/`, double-click:
+   👉 [`start_reverse_proxy.bat`](host1/start_reverse_proxy.bat)
+   *Pilih opsi [1] (Python Native) atau opsi [2] (Nginx Docker). Reverse Proxy langsung aktif di port 80.*
 
-### Langkah 4: Uji Coba dari Smartphone (HP)
-1. Buka browser di HP, ketik URL: `http://<IP_HOST_2>/`
+### Langkah 4: Uji Coba dari Smartphone (HP) & Host 2
+1. **Dari HP:** Buka browser di HP, ketik URL: `http://<IP_HOST_1>/` (Port 80 Host 1).
 2. Tekan tombol **Refresh** berulang kali. Anda akan melihat kartu identitas berpindah secara bergantian antara Node 1, Node 2, Node 3, dan Node 4!
-3. Jalankan pengujian beban otomatis dari terminal Host 2:
-   ```bash
-   python test_dummy_requests.py --url http://localhost/ -n 40
-   ```
+3. **Dari Host 2 (Pengujian Beban Otomatis):**
+   * Di folder `tugas-3/host2/`, double-click:
+     👉 [`run_load_test.bat`](host2/run_load_test.bat)
+   * Masukkan IP Host 1 untuk membuktikan distribusi beban 25% ke 4 node backend.
 
 ### Langkah 5: Opsi Pengujian Online Jarak Jauh (Pinggy Tunneling)
 Jika ingin melakukan pengujian dari HP dengan paket data seluler (4G/5G) atau demo jarak jauh via Zoom / Google Meet:
-1. Double-click [`start_tunnel_online.bat`](start_tunnel_online.bat).
+1. Di Host 1, double-click [`start_tunnel_online.bat`](start_tunnel_online.bat).
 2. Pilih opsi `[1]` untuk membuka Reverse Proxy ke internet publik.
 3. Salin tautan HTTPS publik yang muncul ke HP Anda (atau bagikan ke dosen di Zoom chat).
 4. Panduan lengkap tersedia di: 📘 **[PANDUAN_DEMO_ONLINE.md](PANDUAN_DEMO_ONLINE.md)**.
 
 ---
 
-## 6. Struktur Direktori Proyek
+## 6. Struktur Direktori Proyek (Model A)
 
 ```
 tugas-3/
@@ -169,7 +171,22 @@ tugas-3/
 ├── PANDUAN_TUGAS_3_DAN_DEMO.md    # Panduan langkah demi langkah dan naskah demo lokal
 ├── PANDUAN_DEMO_ONLINE.md         # Panduan pengujian jarak jauh / internet tunneling
 ├── start_tunnel_online.bat        # Skrip 1-klik otomasi tunneling publik Pinggy
-├── host1/                         # Lingkungan Host 1 (Backend Cluster & Squid)
+├── host1/                         # Lingkungan Host 1 (Server Utama, Backend Cluster & Proxy)
+│   ├── server_node.py             # Server aplikasi HTTP Node 1 (Windows: 5001)
+│   ├── start_cluster.bat / .ps1   # Otomasi startup cluster Windows, Docker, & Proxy
+│   ├── setup_vbox_network.ps1     # Otomasi Port Forwarding VirtualBox NAT
+│   ├── server_vm.sh               # Runner server node untuk VM 1 & VM 2
+│   ├── reverse_proxy_native.py    # Reverse Proxy Load Balancer Native Python (Port 80)
+│   ├── start_reverse_proxy.bat    # 1-klik runner Reverse Proxy
+│   ├── nginx/                     # Konfigurasi Nginx Reverse Proxy (Docker Port 80)
+│   ├── docker/                    # Node 4 Container Web Server (Port 5004)
+│   └── squid/                     # Squid Caching Proxy (Port 3128)
+└── host2/                         # Lingkungan Host 2 (Partner Eksternal & Origin Server)
+    ├── origin_web/                # Origin Web Server sumber cache (Port 8080)
+    ├── start_origin_server.bat    # 1-klik runner Origin Web Server
+    ├── test_dummy_requests.py     # Skrip benchmarking penguji beban dummy
+    └── run_load_test.bat          # 1-klik runner pengujian beban ke Host 1
+```
 │   ├── server_node.py             # Script server aplikasi HTTP (HTML & JSON API)
 │   ├── start_cluster.ps1          # Otomasi startup cluster Windows & Docker
 │   ├── docker/
