@@ -76,10 +76,13 @@ flowchart TB
 1. Di Laptop Host 2, buka folder `tugas-3\host2\`
 2. Double-click file:
    👉 **`start_cluster.bat`**
-   * *Otomatis menyalakan Node 1 (Windows: 5001) dan Node 4 (Docker: 5004).*
-3. Di VirtualBox Host 2, nyalakan **VM 1** dan **VM 2**:
-   * Di terminal **VM 1**: `sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"`
-   * Di terminal **VM 2**: `sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"`
+   * *Otomatis menyalakan:*
+     - **Node 1** (Windows Native di port `5001`)
+     - **Node 4** (Docker Container di port `5004`)
+     - **Node 2 & Node 3** (Otomatis menginjeksi dan menyalakan server di VM 1 & VM 2 via script `start_vms_automatically.bat`)
+3. *(Alternatif Manual jika VM dibuka tersendiri di VirtualBox):*
+   * Di terminal **VM 1**: `sh server_vm.sh 5002 'Node 2 - Linux VM 1' '#22c55e'`
+   * Di terminal **VM 2**: `sh server_vm.sh 5003 'Node 3 - Linux VM 2' '#eab308'`
 4. Catat IP Host 2 (IP Tailscale `100.x.y.z` jika beda rumah, atau IP lokal jika satu ruangan), lalu kirim ke Host 1 via chat.
 
 ---

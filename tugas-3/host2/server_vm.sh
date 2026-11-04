@@ -16,6 +16,13 @@ echo " Mempersiapkan Server Node: $NODE_NAME"
 echo " Port: $PORT | Color: $COLOR"
 echo "=================================================="
 
+# Pastikan DNS dan repositori aktif
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+if [ -f /etc/alpine-release ]; then
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/main" > /etc/apk/repositories
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories
+fi
+
 # Pastikan Python 3 terpasang
 if ! command -v python3 >/dev/null 2>&1; then
     echo "[i] Memasang python3..."
