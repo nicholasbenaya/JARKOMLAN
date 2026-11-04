@@ -1,130 +1,110 @@
-# Panduan Praktis & Naskah Demonstrasi Tugas 3 (Host 1, Host 2, & HP)
+# Panduan Langkah demi Langkah & Naskah Demonstrasi Tugas 3
 ## Praktikum Jaringan Komputer dan LAN (JARKOMLAN)
 ### Topik: Cached Proxy (Squid) & Reverse Proxy Load Balancing (Nginx)
 
-Dokumen ini disusun sebagai **panduan operasional teknis** bagi seluruh anggota kelompok agar paham tugas masing-masing dan siap mendemokan sistem secara mulus di hadapan Dosen Penguji dan Asisten Laboratorium.
+Dokumen ini adalah **SOP Operasional Demo Langkah demi Langkah** yang dirancang agar seluruh anggota kelompok (4 orang) memiliki instruksi yang sangat jelas, terstruktur, dan percaya diri saat maju di depan Dosen Penguji dan Asisten Laboratorium.
 
 ---
 
-## 1. Persiapan Konektivitas & Alamat IP (SOP Awal)
+## 📋 Ikhtisar Peran Perangkat
 
-Agar kedua laptop dan smartphone dapat berkomunikasi tanpa gangguan firewall kampus:
-1. **Gunakan 1 Hotspot Bersama:** Salah satu anggota menyalakan hotspot HP (misal: "HOTSPOT-JARKOM").
-2. Hubungkan **Laptop Host 1**, **Laptop Host 2**, dan **Smartphone HP** ke hotspot tersebut.
-3. Catat alamat IP masing-masing:
-   * **Host 1 (PowerShell):** `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.10`).
-   * **Host 2 (PowerShell):** `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.20`).
-4. **Uji Ping Lintas Host:**
-   * Di Host 2, buka terminal: `ping 192.168.43.10`
-   * Pastikan status `Reply from ...` dengan loss 0%.
-   *(Jika Request Timed Out, nonaktifkan sementara Windows Defender Firewall pada profil Jaringan Privat).*
+| Perangkat | Peran Sistem | Komponen yang Dijalankan |
+| :--- | :--- | :--- |
+| **Laptop 1 (Host 1)** | **Pusat Proxy Server (Gateway)** | • **Squid Caching Proxy** (Port `3128`)<br>• **Reverse Proxy Load Balancer** (Port `80`) |
+| **Laptop 2 (Host 2)** | **Pusat Aplikasi (Server Backend)**| • **Origin Web Server** (Port `8080`)<br>• **Kluster 4 Backend Server** (Port `5001`–`5004`) |
+| **Smartphone (HP)** | **Klien Nyata (*End-User Client*)**| • Browser Chrome/Safari (Uji visual & Caching) |
 
 ---
 
-## 2. Pelaksanaan Sub-Tugas 1: Cached Proxy (Squid)
+## 🛠️ TAHAP 0: Persiapan Sebelum Maju Demo (Checklist 2 Menit)
 
-### Tujuan Demonstrasi
-Membuktikan bahwa Squid Proxy di Host 1 mampu memotong jalur komunikasi ke Origin Server di Host 2 setelah permintaan pertama berhasil di-cache (*Cache Hit*).
+Lakukan tahap ini sebelum dipanggil ke meja dosen:
 
-### Langkah Operasional
-
-#### A. Di Host 2 (Origin Server):
-1. Masuk ke direktori origin web:
-   ```bash
-   cd tugas-3/host2/origin_web
-   python origin_server.py
-   ```
-2. Server akan aktif di port `8080`. Perhatikan terminal ini, setiap kali ada request langsung dari luar, terminal akan mencetak `[ORIGIN HIT]`.
-
-#### B. Di Host 1 (Squid Proxy):
-1. Jalankan Squid Proxy via Docker Compose:
-   ```bash
-   cd tugas-3/host1/squid
-   docker compose up -d
-   ```
-2. Monitor log akses Squid secara real-time:
-   ```bash
-   docker exec -it jarkom-squid-proxy tail -f /var/log/squid/access.log
-   ```
-
-#### C. Di Smartphone (HP):
-1. Buka menu **Settings** $\rightarrow$ **Wi-Fi** $\rightarrow$ klik tanda ikon info/gear pada Wi-Fi yang terhubung.
-2. Pilih menu **Proxy** $\rightarrow$ ubah dari *None* menjadi **Manual**.
-3. Isi parameter:
-   * **Proxy Host Name:** Alamat IP Host 1 (contoh: `192.168.43.10`)
-   * **Proxy Port:** `3128`
-4. Simpan konfigurasi.
-
-#### D. Skenario Pembuktian saat Demo:
-1. **Akses Pertama (Cache MISS):**
-   * Di browser HP, buka: `http://192.168.43.20:8080/index.html` (ganti dengan IP Host 2).
-   * **Amati Terminal Host 2:** Muncul baris log `[ORIGIN HIT] ... GET /index.html`.
-   * **Amati Terminal Squid Host 1:** Muncul log berlabel **`TCP_MISS/200`**. Artinya Squid belum punya datanya, sehingga harus mendownload dari Host 2.
-2. **Akses Kedua (Cache HIT):**
-   * Di browser HP, tekan tombol **Refresh**.
-   * **Amati Terminal Host 2:** **TIDAK ADA LOG BARU YANG MASUK!** (Host 2 tidak dihubungi sama sekali).
-   * **Amati Terminal Squid Host 1:** Muncul log berlabel **`TCP_MEM_HIT/200`** atau **`TCP_HIT/200`**. Artinya konten disuplai 100% dari cache lokal Squid di Host 1!
-3. **Uji Ekstrem (Matikan Origin Server):**
-   * Di terminal Host 2, matikan `origin_server.py` dengan menekan `Ctrl + C`.
-   * Di browser HP, tekan **Refresh** lagi $\rightarrow$ **Halaman tetap berhasil terbuka secara instan!**
-   * Jelaskan ke dosen: *"Pak/Mas, server aslinya sudah kami matikan, tetapi klien HP tetap bisa mengakses website karena Squid menyajikannya dari cache lokal."*
-
-> [!TIP]
-> Setelah demo Cached Proxy selesai, kembalikan pengaturan Proxy di Wi-Fi HP menjadi **None / Off** sebelum melanjutkan ke Sub-Tugas 2.
+1. **Nyalakan Hotspot Seluler di HP:**
+   * Nama Wi-Fi (SSID): misalnya `HOTSPOT-JARKOM`.
+2. **Sambungkan Semua Perangkat ke Hotspot Tersebut:**
+   * Laptop Host 1 $\rightarrow$ Connect ke `HOTSPOT-JARKOM`.
+   * Laptop Host 2 $\rightarrow$ Connect ke `HOTSPOT-JARKOM`.
+   * Smartphone HP $\rightarrow$ Tetap terhubung ke jaringan lokal hotspot tersebut.
+3. **Catat Alamat IPv4 Masing-Masing:**
+   * Di **Host 1** (buka CMD): ketik `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.10`).
+   * Di **Host 2** (buka CMD): ketik `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.20`).
+4. **Tes Konektivitas Lintas Laptop (Ping Test):**
+   * Di Host 1, buka CMD: `ping 192.168.43.20`
+   * Pastikan output `Reply from 192.168.43.20: bytes=32 ... Loss = 0%`.
+   *(Jika Request Timed Out, matikan sementara Windows Defender Firewall pada Private Network).*
 
 ---
 
-## 3. Pelaksanaan Sub-Tugas 2: Reverse Proxy & Load Balancing (Nginx)
+## 🚀 TAHAP 1: Eksekusi Sub-Tugas 2 (Reverse Proxy & Load Balancing)
+> 💡 **Rekomendasi:** Tunjukkan Sub-Tugas 2 terlebih dahulu karena sangat visual di browser HP dan tidak membutuhkan konfigurasi proxy manual di HP!
 
-### Tujuan Demonstrasi
-Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di **Host 1** mampu mendistribusikan lalu lintas dari klien luar (HP) secara merata ke 4 backend yang berjalan di **Host 2** (**Windows Native, VM 1, VM 2, dan Docker Container**).
-
-### Langkah Operasional
-
-#### A. Di Host 2 (Laptop Teman - Kluster 4 Backend Server):
-1. Buka folder `tugas-3/host2/`, double-click:
-   👉 [`start_cluster.bat`](host2/start_cluster.bat)
-   *Skrip ini akan otomatis menyalakan Node 1 (Windows: port 5001) dan Node 4 (Docker: port 5004).*
-2. Nyalakan VirtualBox di Host 2:
-   * Di **VM 1**, jalankan terminal:
+### Langkah 1.1: Menyalakan 4 Server Backend di Laptop Host 2
+1. Di Laptop Host 2, buka folder: `tugas-3\host2\`
+2. Double-click file:
+   👉 **`start_cluster.bat`**
+   * *Jendela PowerShell akan otomatis menyalakan:*
+     * **Node 1:** Windows Native Web Server pada port `5001`.
+     * **Node 4:** Docker Container Web Server pada port `5004`.
+3. Buka Oracle VirtualBox di Host 2, jalankan **VM1** dan **VM2**:
+   * Di terminal **VM 1**, ketik:
      ```bash
      sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"
      ```
-   * Di **VM 2**, jalankan terminal:
+   * Di terminal **VM 2**, ketik:
      ```bash
      sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"
      ```
-3. *Pastikan VirtualBox Port Forwarding di Host 2 sudah aktif (jalankan `setup_vbox_network.ps1`):*
-   * VM 1: Host Port `5002` $\rightarrow$ Guest Port `5002`.
-   * VM 2: Host Port `5003` $\rightarrow$ Guest Port `5003`.
-4. Catat alamat IP Host 2 (misal `192.168.43.20`), lalu beritahukan ke Host 1.
+   *(Node 2 aktif di port 5002, Node 3 aktif di port 5003 via NAT Port Forwarding).*
+4. Beritahukan alamat IP Host 2 ke pemegang Host 1 (misal: `192.168.43.20`).
 
-#### B. Di Host 1 (Laptop Anda - Reverse Proxy & Load Balancer):
-1. Buka folder `tugas-3/host1/`, double-click:
-   👉 [`start_reverse_proxy.bat`](host1/start_reverse_proxy.bat)
-2. Masukkan alamat IP Host 2 (contoh: `192.168.43.20`).
-3. Pilih opsi `[1]` (Python Native) atau `[2]` (Nginx Docker). Reverse Proxy langsung aktif di port `80` dan siap mendistribusikan request ke 4 server di Host 2!
+---
 
-#### C. Skenario Pembuktian saat Demo:
-
-##### 1. Demonstrasi Visual Menggunakan Smartphone (HP):
-1. Pastikan Wi-Fi HP terhubung ke hotspot yang sama (Proxy Wi-Fi dalam kondisi **Off**).
-2. Buka browser HP (Google Chrome / Safari).
-3. Ketik alamat URL: `http://192.168.43.10/` (IP Host 1 Port 80).
-4. **Tunjukkan layar HP ke Dosen/Aslab sambil menekan tombol Refresh:**
-   * **Refresh 1:** Kartu biru menyala $\rightarrow$ `"Node 1: Windows 11 Native"`.
-   * **Refresh 2:** Kartu hijau menyala $\rightarrow$ `"Node 2: VirtualBox Linux VM 1"`.
-   * **Refresh 3:** Kartu kuning menyala $\rightarrow$ `"Node 3: VirtualBox Linux VM 2"`.
-   * **Refresh 4:** Kartu ungu menyala $\rightarrow$ `"Node 4: Docker Container (WSL 2)"`.
-   * **Refresh 5:** Kembali ke Node 1 (siklus *Round Robin* terbukti!).
-
-##### 2. Demonstrasi Kuantitatif dengan Skrip Dummy Benchmark dari Host 2:
-1. Di laptop Host 2, jalankan `run_load_test.bat` (atau terminal):
-   ```bash
-   python test_dummy_requests.py --url http://192.168.43.10/ -n 40
+### Langkah 1.2: Menyalakan Reverse Proxy di Laptop Host 1
+1. Di Laptop Host 1, buka folder: `tugas-3\host1\`
+2. Double-click file:
+   👉 **`start_reverse_proxy.bat`**
+3. Masukkan IP Host 2 saat diminta di terminal:
+   ```text
+   Masukkan Alamat IP Host 2: 192.168.43.20
    ```
-2. Skrip akan mengirim 40 permintaan secara cepat dan menampilkan tabel distribusi:
+4. Pilih mode eksekusi: ketik **`1`** (Python Native) lalu tekan Enter.
+5. Terminal akan menampilkan konfirmasi:
+   ```text
+   REVERSE PROXY & LOAD BALANCER (HOST 1) AKTIF
+   Listening: http://0.0.0.0:80
+   Target Upstream Cluster Host 2:
+     - http://192.168.43.20:5001
+     - http://192.168.43.20:5002
+     - http://192.168.43.20:5003
+     - http://192.168.43.20:5004
    ```
+
+---
+
+### Langkah 1.3: Pembuktian Visual di Hadapan Dosen (Menggunakan HP)
+1. Pastikan Wi-Fi HP terhubung ke hotspot (Proxy Wi-Fi dalam kondisi **Off/None**).
+2. Buka browser di HP (Google Chrome / Safari), ketik URL:
+   ```text
+   http://192.168.43.10/
+   ```
+   *(Gunakan alamat IP Host 1 port 80).*
+3. **Pegang HP Anda dan perlihatkan ke Dosen sambil menekan tombol Refresh:**
+   * **Refresh ke-1:** Muncul kartu Biru $\rightarrow$ `Node 1 - Windows Native (:5001)`
+   * **Refresh ke-2:** Muncul kartu Hijau $\rightarrow$ `Node 2 - VirtualBox VM 1 (:5002)`
+   * **Refresh ke-3:** Muncul kartu Kuning $\rightarrow$ `Node 3 - VirtualBox VM 2 (:5003)`
+   * **Refresh ke-4:** Muncul kartu Ungu $\rightarrow$ `Node 4 - Docker Container (:5004)`
+   * **Refresh ke-5:** Kembali ke Node 1 (*Siklus Round Robin terbukti bekerja sempurna!*)
+
+---
+
+### Langkah 1.4: Pembuktian Kuantitatif (Automated Dummy Load Test)
+1. Di Laptop Host 2 (atau Host 1), buka folder `tugas-3\host2\`
+2. Double-click file:
+   👉 **`run_load_test.bat`**
+3. Masukkan target URL Host 1: `http://192.168.43.10/` dan jumlah request: `40`.
+4. Skrip akan mengirim 40 permintaan secara simultan dan mencetak tabel distribusi beban:
+   ```text
    ==================================================
      HASIL DISTRIBUSI LOAD BALANCING (ROUND ROBIN)   
    ==================================================
@@ -136,32 +116,115 @@ Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di **Host 1** mampu mend
     Node 4 - Docker Container      | 10             |  25.00%
    ==================================================
    ```
-   *Hasil ini memberikan bukti kuantitatif bahwa pembagian beban berjalan presisi 1:1:1:1.*
+   *Tunjukkan tabel 25% rata ini sebagai bukti matematis bahwa pembagian beban seimbang.*
 
 ---
 
-## 4. Naskah Presentasi (Elevator Pitch untuk Demo)
+## ⚡ TAHAP 2: Eksekusi Sub-Tugas 1 (Cached Proxy Squid)
 
-Ketika giliran kelompok Anda dipanggil untuk demo, gunakan naskah terstruktur ini:
-
-> **Salam & Pengantar:**
-> *"Selamat pagi/siang Bapak/Ibu Dosen dan Mas/Mbak Asisten. Pada Tugas 3 ini, kelompok kami mengimplementasikan dua arsitektur perantara jaringan: **Cached Proxy** menggunakan Squid dan **Reverse Proxy Load Balancer** menggunakan Nginx, yang diuji secara langsung menggunakan smartphone sebagai end-user client."*
-
-> **Penjelasan Tugas 1 (Cached Proxy):**
-> *"Pertama, untuk Cached Proxy, kami menempatkan Squid di Host 1 dan Origin Web Server di Host 2. Ketika smartphone kami mengakses web pertama kali, terjadi **Cache MISS**, di mana Squid mengambil file dari Host 2 lalu menyimpannya di direktori cache. Pada akses kedua, terjadi **Cache HIT** dengan latensi mendekati 0 milidetik, di mana Squid langsung menyajikan dari memori lokal. Kami juga membuktikan dengan mematikan Origin Server di Host 2, halaman web tetap berhasil dimuat dari HP."*
-
-> **Penjelasan Tugas 2 (Reverse Proxy):**
-> *"Kedua, untuk Reverse Proxy dan Load Balancing, Host 2 bertindak sebagai gerbang tunggal Nginx. Di belakangnya, Host 1 mengorkestrasikan 4 node backend di 4 lingkungan komputasi berbeda: Windows Native, VM 1 Alpine, VM 2 Alpine, dan Docker Container. Melalui browser HP yang di-refresh berulang kali, terlihat algoritma **Round Robin** membagi beban secara bergantian ke tiap node. Saat kami jalankan benchmark 40 requests, beban terdistribusi presisi masing-masing 25% tanpa ada server yang mengalami bottleneck."*
+### Langkah 2.1: Menyalakan Origin Web Server di Laptop Host 2
+1. Di Laptop Host 2, buka folder: `tugas-3\host2\`
+2. Double-click file:
+   👉 **`start_origin_server.bat`**
+3. Terminal akan aktif menampilkan:
+   ```text
+   ORIGIN WEB SERVER (HOST 2) AKTIF
+   Listening: http://0.0.0.0:8080
+   Caching Header: max-age=3600 (1 Jam)
+   ```
+   *(Biarkan jendela ini tetap terlihat di layar Laptop 2).*
 
 ---
 
-## 5. Pertanyaan Kritis yang Sering Ditanyakan Asisten Lab (FAQ)
+### Langkah 2.2: Menyalakan Squid Caching Proxy di Laptop Host 1
+1. Di Laptop Host 1, buka folder: `tugas-3\host1\`
+2. Double-click file:
+   👉 **`start_squid.bat`**
+3. Squid akan aktif pada port `3128` dan terminal otomatis menampilkan streaming log `access.log`.
 
-1. **T: Mengapa klien diarahkan ke port 80 Host 2, bukan langsung ke port 5001–5004 di Host 1?**
-   * *Jawab:* Itulah fungsi utama **Reverse Proxy**. Klien tidak boleh mengetahui topologi dan port internal backend demi alasan keamanan dan skalabilitas (*single entry point*). Klien hanya berurusan dengan Reverse Proxy, dan Reverse Proxy-lah yang bertugas mendistribusikan beban.
+---
 
-2. **T: Apa bedanya Forward Proxy dengan Reverse Proxy?**
-   * *Jawab:* **Forward Proxy** (seperti Squid) bertindak mewakili **klien** untuk mengakses server di luar/internet. Sebaliknya, **Reverse Proxy** (seperti Nginx) bertindak mewakili **server backend** untuk melayani klien luar.
+### Langkah 2.3: Mengonfigurasi Manual Proxy di Smartphone (HP)
+1. Buka menu **Settings** di HP $\rightarrow$ pilih **Wi-Fi**.
+2. Klik tanda ikon info `(i)` atau ikon roda gigi pada Wi-Fi hotspot yang terhubung.
+3. Gulir ke bawah ke menu **Proxy** $\rightarrow$ ubah dari *None / Tidak Ada* menjadi **Manual**.
+4. Isi parameter:
+   * **Host / Nama Host Proxy:** Masukkan IP Host 1 (contoh: `192.168.43.10`).
+   * **Port:** `3128`.
+5. Klik **Simpan (Save)**.
+
+---
+
+### Langkah 2.4: Pembuktian Caching di Hadapan Dosen
+
+1. **Uji Coba 1 - Permintaan Pertama (Cache MISS):**
+   * Di browser HP, buka alamat Origin Server Host 2:
+     ```text
+     http://192.168.43.20:8080/index.html
+     ```
+   * **Tunjukkan Layar Host 2:** Muncul baris log `[ORIGIN HIT] GET /index.html`. Artinya server asal dihubungi.
+   * **Tunjukkan Layar Host 1:** Terminal Squid mencatat **`TCP_MISS/200`**. Artinya Squid belum punya datanya dan mengunduh dari Host 2.
+2. **Uji Coba 2 - Permintaan Kedua (Cache HIT):**
+   * Di browser HP, tekan tombol **Refresh / Muat Ulang**.
+   * **Tunjukkan Layar Host 2:** **TIDAK ADA LOG BARU YANG MASUK!** (Host 2 tidak disentuh sama sekali).
+   * **Tunjukkan Layar Host 1:** Terminal Squid mencatat **`TCP_MEM_HIT/200`** atau **`TCP_HIT/200`**. Halaman langsung disajikan dari memori cache Squid di Host 1!
+3. **Uji Coba 3 - Pembuktian Ekstrem (Matikan Origin Server):**
+   * Di terminal Host 2, matikan Origin Server dengan menekan tombol **`Ctrl + C`**.
+   * Di browser HP, tekan tombol **Refresh** sekali lagi.
+   * **Hasil:** Halaman web **tetap berhasil terbuka secara instan!**
+   * Sampaikan ke dosen: *"Pak/Mas, server aslinya di Host 2 sudah kami matikan, namun HP kami tetap bisa mengakses konten web karena disuplai langsung oleh cache lokal Squid di Host 1."*
+
+> [!IMPORTANT]
+> Setelah demonstrasi selesai, kembalikan pengaturan Proxy di Wi-Fi HP menjadi **None / Off** agar HP dapat browsing internet normal kembali.
+
+---
+
+## 🎙️ TAHAP 3: Naskah Presentasi Siap Pakai saat Maju Demo
+
+Gunakan pembagian peran dan kalimat ini saat berbicara di depan dosen/asisten lab:
+
+### 👤 Anggota 1 (Host 1 - Pembuka & Penjelasan Proxy):
+> *"Selamat pagi/siang Bapak/Ibu Dosen dan Mas/Mbak Asisten. Pada Tugas 3 ini, kelompok kami mengimplementasikan dua arsitektur perantara jaringan:*
+> 1. *Pertama, **Reverse Proxy Load Balancer** di mana Host 1 bertindak sebagai single gateway yang membagi beban ke 4 server di Host 2.*
+> 2. *Kedua, **Cached Proxy** menggunakan Squid di Host 1 untuk menyimpan objek web asal Host 2 di cache lokal.*
+> 
+> *Sekarang kami akan mendemonstrasikan Sub-Tugas 2 terlebih dahulu menggunakan smartphone sebagai real-client."*
+
+### 👤 Anggota 2 (Host 2 - Menjelaskan 4 Backend Server):
+> *"Di Laptop Host 2, kami mengorkestrasikan 4 instance server web di 4 lingkungan komputasi yang terisolasi:*
+> * *Node 1 berjalan secara native di OS Windows (port 5001).*
+> * *Node 2 berjalan di VirtualBox VM 1 Alpine Linux (port 5002 via NAT port forward).*
+> * *Node 3 berjalan di VirtualBox VM 2 Alpine Linux (port 5003 via NAT port forward).*
+> * *Node 4 berjalan di dalam kontainer Docker WSL 2 (port 5004).*
+> 
+> *Seluruh server ini menunggu instruksi dari Reverse Proxy Host 1."*
+
+### 👤 Anggota 3 (Memperagakan HP & Dummy Test):
+> *(Sambil memperlihatkan layar smartphone HP ke dosen)*
+> *"Klien HP kami hanya mengakses IP Host 1 di port 80. Ketika saya menekan refresh, dapat dilihat kartu identitas server berganti warna dan nama secara bergiliran: Windows, VM 1, VM 2, dan Docker.*
+> 
+> *Ketika kami menembakkan 40 permintaan otomatis melalui script benchmark, algoritma Round Robin membagi beban secara seimbang masing-masing tepat 25% (10 request per node) tanpa bottleneck."*
+
+### 👤 Anggota 4 (Menjelaskan Cached Proxy Squid):
+> *"Selanjutnya untuk Cached Proxy, kami menyalakan Squid di Host 1 dan Origin Server di Host 2. Melalui pengaturan manual proxy port 3128 di HP:*
+> * *Pada request pertama terjadi **Cache MISS** (tercatat di terminal Squid dan Origin Server).*
+> * *Pada request kedua terjadi **Cache HIT** dengan latensi 0ms karena disajikan dari cache memori Squid.*
+> * *Bahkan ketika Origin Server di Host 2 kami matikan, klien HP tetap dapat mengakses halaman web secara utuh."*
+
+---
+
+## 🧠 Cheatsheet Tanya-Jawab Kuis Dosen/Aslab (FAQ)
+
+1. **T: Mengapa klien luar (HP) diarahkan ke port 80 Host 1, bukan langsung ke port 5001–5004 di Host 2?**
+   * **Jawab:** Itulah esensi arsitektur **Reverse Proxy**. Tujuannya adalah menyembunyikan infrastruktur internal backend demi keamanan (*security through obscurity*), menyediakan satu gerbang tunggal (*single entry point*), dan membagi beban lalu lintas secara dinamis (*load balancing*). Klien tidak perlu tahu berapa banyak server di belakangnya.
+
+2. **T: Apa perbedaan mendasar antara Forward Proxy (Squid) dan Reverse Proxy (Nginx)?**
+   * **Jawab:** 
+     * **Forward Proxy (Squid)** bertindak mewakili **klien** untuk mengakses web server luar/internet (fokus: caching, penghematan bandwidth, filter akses klien).
+     * **Reverse Proxy (Nginx)** bertindak mewakili **server backend** untuk melayani klien luar (fokus: load balancing, SSL termination, failover, proteksi server).
 
 3. **T: Mengapa di VirtualBox harus menggunakan Port Forwarding NAT?**
-   * *Jawab:* Karena mode NAT mengisolasi VM di dalam subnet privat VirtualBox (`10.0.2.0/24`) yang tidak bisa di-routing langsung dari jaringan luar. Dengan Port Forwarding, port Host fisik (misal 5002) dipetakan ke port internal VM (5002), sehingga Nginx di Host 2 bisa menjangkaunya melalui IP Host 1.
+   * **Jawab:** Karena mode NAT menempatkan VM di subnet privat VirtualBox (`10.0.2.0/24`) yang terisolasi dari jaringan Wi-Fi luar. Dengan aturan Port Forwarding, paket dari Host fisik (port 5002/5003) dipetakan masuk ke interface internal VM, sehingga Reverse Proxy di Host 1 dapat menjangkaunya melalui IP Host 2.
+
+4. **T: Bagaimana Squid mengetahui bahwa suatu halaman web boleh di-cache?**
+   * **Jawab:** Melalui HTTP response header `Cache-Control: public, max-age=3600` yang dikirimkan oleh Origin Server, serta aturan `refresh_pattern` pada file konfigurasi `squid.conf`.
