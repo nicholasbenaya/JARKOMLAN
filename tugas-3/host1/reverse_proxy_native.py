@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime
 
 # ==============================================================================
-# Pure Python Reverse Proxy & Load Balancer - Host 1 Model A (Zero Config)
+# Pure Python Reverse Proxy & Load Balancer (Host 1 Proxy -> Host 2 Servers)
 # ==============================================================================
 
 class ReverseProxyHandler(BaseHTTPRequestHandler):
@@ -29,7 +29,7 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
 
         req = urllib.request.Request(target_url, data=body, headers=headers, method=method)
 
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [PROXY] Klien {self.client_address[0]} -> {target_backend} ({self.path})")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [PROXY HOST 1] Klien {self.client_address[0]} -> {target_backend} ({self.path})")
 
         try:
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -50,7 +50,7 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(err_body)
         except Exception as e:
-            msg = f"<h1>502 Bad Gateway</h1><p>Gagal menghubungi backend {target_backend}: {e}</p>".encode('utf-8')
+            msg = f"<h1>502 Bad Gateway</h1><p>Gagal menghubungi backend di Host 2 ({target_backend}): {e}</p>".encode('utf-8')
             self.send_response(502)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Content-Length', str(len(msg)))
@@ -67,23 +67,24 @@ class ReverseProxyHandler(BaseHTTPRequestHandler):
         self.forward_request('HEAD')
 
 def run():
-    parser = argparse.ArgumentParser(description="Host 1 Native Reverse Proxy Load Balancer")
+    parser = argparse.ArgumentParser(description="Host 1 Reverse Proxy Load Balancer")
     parser.add_argument("--port", type=int, default=80, help="Port proxy mendengarkan (default 80)")
+    parser.add_argument("--host2-ip", type=str, default="127.0.0.1", help="Alamat IP Host 2 (Tempat Kluster Server Berjalan)")
     args = parser.parse_args()
 
-    # 4 Node Backend Lokal di Host 1
+    # 4 Node Backend yang Berjalan di Host 2
     backend_nodes = [
-        "http://127.0.0.1:5001", # Node 1: Windows Native
-        "http://127.0.0.1:5002", # Node 2: VirtualBox Linux VM 1
-        "http://127.0.0.1:5003", # Node 3: VirtualBox Linux VM 2
-        "http://127.0.0.1:5004", # Node 4: Docker Container
+        f"http://{args.host2_ip}:5001", # Node 1: Windows Native
+        f"http://{args.host2_ip}:5002", # Node 2: VirtualBox Linux VM 1
+        f"http://{args.host2_ip}:5003", # Node 3: VirtualBox Linux VM 2
+        f"http://{args.host2_ip}:5004", # Node 4: Docker Container
     ]
 
     server_address = ('0.0.0.0', args.port)
     try:
         httpd = HTTPServer(server_address, ReverseProxyHandler)
     except PermissionError:
-        print(f"[!] Akses ditolak pada port {args.port}. Coba gunakan port 8080 atau jalankan sebagai Administrator.")
+        print(f"[!] Akses ditolak pada port {args.port}. Coba jalankan CMD/PowerShell sebagai Administrator atau gunakan port 8080.")
         server_address = ('0.0.0.0', 8080)
         httpd = HTTPServer(server_address, ReverseProxyHandler)
         args.port = 8080
@@ -93,7 +94,7 @@ def run():
     print("==================================================")
     print(" REVERSE PROXY & LOAD BALANCER (HOST 1) AKTIF     ")
     print(f" Listening: http://0.0.0.0:{args.port}          ")
-    print(" Upstream Cluster Backend (Lokal):                ")
+    print(f" Target Upstream Cluster Host 2 ({args.host2_ip}): ")
     for node in backend_nodes:
         print(f"  - {node}")
     print("==================================================")

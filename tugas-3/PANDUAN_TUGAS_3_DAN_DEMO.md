@@ -77,15 +77,15 @@ Membuktikan bahwa Squid Proxy di Host 1 mampu memotong jalur komunikasi ke Origi
 ## 3. Pelaksanaan Sub-Tugas 2: Reverse Proxy & Load Balancing (Nginx)
 
 ### Tujuan Demonstrasi
-Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di Host 1 mampu mendistribusikan lalu lintas dari klien luar (HP & Host 2) secara merata ke 4 backend lokal (**Windows, VM 1, VM 2, dan Docker**).
+Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di **Host 1** mampu mendistribusikan lalu lintas dari klien luar (HP) secara merata ke 4 backend yang berjalan di **Host 2** (**Windows Native, VM 1, VM 2, dan Docker Container**).
 
 ### Langkah Operasional
 
-#### A. Di Host 1 (Laptop Anda - Backend Cluster & Reverse Proxy):
-1. Buka folder `tugas-3/host1/`, double-click:
-   👉 [`start_cluster.bat`](host1/start_cluster.bat)
-   *Skrip ini akan otomatis menyalakan Node 1 (Windows: port 5001), Node 4 (Docker: port 5004), dan Reverse Proxy (Port 80).*
-2. Nyalakan VirtualBox:
+#### A. Di Host 2 (Laptop Teman - Kluster 4 Backend Server):
+1. Buka folder `tugas-3/host2/`, double-click:
+   👉 [`start_cluster.bat`](host2/start_cluster.bat)
+   *Skrip ini akan otomatis menyalakan Node 1 (Windows: port 5001) dan Node 4 (Docker: port 5004).*
+2. Nyalakan VirtualBox di Host 2:
    * Di **VM 1**, jalankan terminal:
      ```bash
      sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"
@@ -94,15 +94,16 @@ Membuktikan bahwa Reverse Proxy (Nginx / Python Native) di Host 1 mampu mendistr
      ```bash
      sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"
      ```
-3. *Pastikan VirtualBox Port Forwarding sudah aktif (sudah dikonfigurasi via `setup_vbox_network.ps1`):*
+3. *Pastikan VirtualBox Port Forwarding di Host 2 sudah aktif (jalankan `setup_vbox_network.ps1`):*
    * VM 1: Host Port `5002` $\rightarrow$ Guest Port `5002`.
    * VM 2: Host Port `5003` $\rightarrow$ Guest Port `5003`.
+4. Catat alamat IP Host 2 (misal `192.168.43.20`), lalu beritahukan ke Host 1.
 
-#### B. Di Host 2 (Laptop Teman - Traffic Generator):
-Teman Anda tidak perlu menjalankan server atau konfigurasi berat! Cukup gunakan skrip penguji:
-* Buka folder `tugas-3/host2/`, double-click:
-  👉 [`run_load_test.bat`](host2/run_load_test.bat)
-* Masukkan IP Host 1 Anda (contoh: `192.168.43.10`).
+#### B. Di Host 1 (Laptop Anda - Reverse Proxy & Load Balancer):
+1. Buka folder `tugas-3/host1/`, double-click:
+   👉 [`start_reverse_proxy.bat`](host1/start_reverse_proxy.bat)
+2. Masukkan alamat IP Host 2 (contoh: `192.168.43.20`).
+3. Pilih opsi `[1]` (Python Native) atau `[2]` (Nginx Docker). Reverse Proxy langsung aktif di port `80` dan siap mendistribusikan request ke 4 server di Host 2!
 
 #### C. Skenario Pembuktian saat Demo:
 
@@ -136,17 +137,6 @@ Teman Anda tidak perlu menjalankan server atau konfigurasi berat! Cukup gunakan 
    ==================================================
    ```
    *Hasil ini memberikan bukti kuantitatif bahwa pembagian beban berjalan presisi 1:1:1:1.*
-     HASIL DISTRIBUSI LOAD BALANCING (ROUND ROBIN)   
-   ==================================================
-    Nama Node                      | Jumlah Request | Persentase
-    -------------------------------+----------------+------------
-    Node 1 - Windows Native        | 10             |  25.00%
-    Node 2 - Linux VM 1            | 10             |  25.00%
-    Node 3 - Linux VM 2            | 10             |  25.00%
-    Node 4 - Docker Container      | 10             |  25.00%
-   ==================================================
-   ```
-   *Hasil ini memberikan bukti matematis bahwa pembagian beban berjalan sempurna 1:1:1:1.*
 
 ---
 
