@@ -152,6 +152,13 @@ flowchart TB
    python test_dummy_requests.py --url http://localhost/ -n 40
    ```
 
+### Langkah 5: Opsi Pengujian Online Jarak Jauh (Pinggy Tunneling)
+Jika ingin melakukan pengujian dari HP dengan paket data seluler (4G/5G) atau demo jarak jauh via Zoom / Google Meet:
+1. Double-click [`start_tunnel_online.bat`](start_tunnel_online.bat).
+2. Pilih opsi `[1]` untuk membuka Reverse Proxy ke internet publik.
+3. Salin tautan HTTPS publik yang muncul ke HP Anda (atau bagikan ke dosen di Zoom chat).
+4. Panduan lengkap tersedia di: 📘 **[PANDUAN_DEMO_ONLINE.md](PANDUAN_DEMO_ONLINE.md)**.
+
 ---
 
 ## 6. Struktur Direktori Proyek
@@ -159,7 +166,9 @@ flowchart TB
 ```
 tugas-3/
 ├── README.md                      # Dokumentasi komprehensif arsitektur & teori
-├── PANDUAN_TUGAS_3_DAN_DEMO.md    # Panduan langkah demi langkah dan naskah demo
+├── PANDUAN_TUGAS_3_DAN_DEMO.md    # Panduan langkah demi langkah dan naskah demo lokal
+├── PANDUAN_DEMO_ONLINE.md         # Panduan pengujian jarak jauh / internet tunneling
+├── start_tunnel_online.bat        # Skrip 1-klik otomasi tunneling publik Pinggy
 ├── host1/                         # Lingkungan Host 1 (Backend Cluster & Squid)
 │   ├── server_node.py             # Script server aplikasi HTTP (HTML & JSON API)
 │   ├── start_cluster.ps1          # Otomasi startup cluster Windows & Docker

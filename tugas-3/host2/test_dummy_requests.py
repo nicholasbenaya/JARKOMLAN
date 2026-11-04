@@ -2,6 +2,7 @@ import urllib.request
 import json
 import time
 import argparse
+import ssl
 from collections import Counter
 
 def run_load_test(target_url, total_requests, delay):
@@ -15,6 +16,9 @@ def run_load_test(target_url, total_requests, delay):
 
     distribution = Counter()
     start_time = time.time()
+    
+    # Dukungan SSL bypass untuk tunnel HTTPS (Pinggy/Cloudflare)
+    ctx = ssl._create_unverified_context()
 
     for i in range(1, total_requests + 1):
         req_start = time.time()
@@ -23,7 +27,7 @@ def run_load_test(target_url, total_requests, delay):
                 f"{target_url.rstrip('/')}/api",
                 headers={'Accept': 'application/json', 'User-Agent': 'Jarkom-Load-Tester/1.0'}
             )
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
                 latency = (time.time() - req_start) * 1000
                 data = json.loads(response.read().decode('utf-8'))
                 node_name = data.get('node_name', 'Unknown Node')

@@ -46,5 +46,7 @@ Repositori ini memuat seluruh implementasi, arsitektur sistem, dokumentasi tekni
 * **Dokumentasi Terkait:**
   - 📘 **[tugas-3/README.md](tugas-3/README.md)** — Dokumentasi komprehensif, topologi sistem 2-Host + Smartphone, matriks port, dan pembagian tugas kelompok 4 orang.
   - 📋 **[tugas-3/PANDUAN_TUGAS_3_DAN_DEMO.md](tugas-3/PANDUAN_TUGAS_3_DAN_DEMO.md)** — Panduan operasional langkah demi langkah, SOP uji coba smartphone, naskah demo, dan FAQ evaluasi lab.
+  - 🌐 **[tugas-3/PANDUAN_DEMO_ONLINE.md](tugas-3/PANDUAN_DEMO_ONLINE.md)** — Panduan pengujian jarak jauh / internet tunneling (Pinggy) dari HP seluler atau Zoom.
+  - ⚡ **[tugas-3/start_tunnel_online.bat](tugas-3/start_tunnel_online.bat)** — Skrip otomasi 1-klik membuka tunnel publik internet.
   - 📁 **`tugas-3/host1/`** — Script backend cluster (`server_node.py`, `start_cluster.ps1`), Docker Node 4, dan Squid Proxy.
   - 📁 **`tugas-3/host2/`** — Konfigurasi Nginx Reverse Proxy, Origin Web Server, dan skrip benchmarking dummy load test.
