@@ -1,230 +1,230 @@
-# Panduan Langkah demi Langkah & Naskah Demonstrasi Tugas 3
-## Praktikum Jaringan Komputer dan LAN (JARKOMLAN)
-### Topik: Cached Proxy (Squid) & Reverse Proxy Load Balancing (Nginx)
+# Panduan Demonstrasi Online (Akses Internet Jarak Jauh)
+## Praktikum Jaringan Komputer dan LAN (JARKOMLAN) - Tugas 3
+### Topik: Cached Proxy (Squid) & Reverse Proxy Load Balancing (Nginx) via Pinggy Tunneling
 
-Dokumen ini adalah **SOP Operasional Demo Langkah demi Langkah** yang dirancang agar seluruh anggota kelompok (4 orang) memiliki instruksi yang sangat jelas, terstruktur, dan percaya diri saat maju di depan Dosen Penguji dan Asisten Laboratorium.
-
----
-
-## 📋 Ikhtisar Peran Perangkat
-
-| Perangkat | Peran Sistem | Komponen yang Dijalankan |
-| :--- | :--- | :--- |
-| **Laptop 1 (Host 1)** | **Pusat Proxy Server (Gateway)** | • **Squid Caching Proxy** (Port `3128`)<br>• **Reverse Proxy Load Balancer** (Port `80`) |
-| **Laptop 2 (Host 2)** | **Pusat Aplikasi (Server Backend)**| • **Origin Web Server** (Port `8080`)<br>• **Kluster 4 Backend Server** (Port `5001`–`5004`) |
-| **Smartphone (HP)** | **Klien Nyata (*End-User Client*)**| • Browser Chrome/Safari (Uji visual & Caching) |
+Panduan ini disusun khusus untuk **Demonstrasi 100% ONLINE (Jarak Jauh)**:
+* Anggota kelompok dapat berada di **rumah/lokasi masing-masing**.
+* Pengujian dari **Smartphone (HP)** menggunakan **paket data seluler (4G/5G)** tanpa perlu Wi-Fi lokal atau tethering hotspot.
+* Dosen / Asisten Lab dapat **langsung membuka link publik di HP mereka sendiri** atau melalui tautan di chat **Zoom / Google Meet**.
 
 ---
 
-## 🛠️ TAHAP 0: Persiapan Sebelum Maju Demo (Checklist 2 Menit)
+## 🌐 Ikhtisar Arsitektur Online (Model Host 1 Proxy & Host 2 Server)
 
-Lakukan tahap ini sebelum dipanggil ke meja dosen:
+Dengan memanfaatkan **Pinggy SSH Reverse Tunneling** (port 443 outbound yang kebal blokir ISP), seluruh layanan diekspos ke internet publik:
 
-1. **Nyalakan Hotspot Seluler di HP:**
-   * Nama Wi-Fi (SSID): misalnya `HOTSPOT-JARKOM`.
-2. **Sambungkan Semua Perangkat ke Hotspot Tersebut:**
-   * Laptop Host 1 $\rightarrow$ Connect ke `HOTSPOT-JARKOM`.
-   * Laptop Host 2 $\rightarrow$ Connect ke `HOTSPOT-JARKOM`.
-   * Smartphone HP $\rightarrow$ Tetap terhubung ke jaringan lokal hotspot tersebut.
-3. **Catat Alamat IPv4 Masing-Masing:**
-   * Di **Host 1** (buka CMD): ketik `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.10`).
-   * Di **Host 2** (buka CMD): ketik `ipconfig` $\rightarrow$ catat IPv4 Wireless LAN (contoh: `192.168.43.20`).
-4. **Tes Konektivitas Lintas Laptop (Ping Test):**
-   * Di Host 1, buka CMD: `ping 192.168.43.20`
-   * Pastikan output `Reply from 192.168.43.20: bytes=32 ... Loss = 0%`.
-   *(Jika Request Timed Out, matikan sementara Windows Defender Firewall pada Private Network).*
+```mermaid
+flowchart TB
+    subgraph Internet["🌍 Jaringan Internet Publik (Anywhere / 4G / 5G / Zoom)"]
+        direction TB
+        Dosen["👨‍🏫 Dosen / Aslab di Zoom (Buka Link Publik)"]
+        HP["📱 Smartphone HP Klien (Koneksi Seluler 4G/5G)"]
+        Tester["💻 Laptop Penguji Beban (run_load_test.bat)"]
+    end
+
+    subgraph PinggyCloud["☁️ Pinggy Edge Cloud Relay"]
+        PublicHTTP["URL Publik HTTPS\n(https://xxxx.free.pinggy.link)"]
+        PublicTCP["Host & Port TCP Publik\n(tcp.pinggy.io:XXXXX)"]
+    end
+
+    subgraph Host1Machine["💻 Host 1 (Laptop 1 - Pusat Proxy Server)"]
+        direction TB
+        Tunnel1["start_tunnel_online.bat"]
+        RP["Reverse Proxy & Load Balancer (Port 80)"]
+        Squid["Squid Caching Proxy (Port 3128)"]
+    end
+
+    subgraph Host2Machine["💻 Host 2 (Laptop 2 - Pusat Server Backend)"]
+        direction TB
+        Tunnel2["start_tunnel_online.bat"]
+        Origin["Origin Web Server (Port 8080)"]
+        Cluster["Kluster 4 Backend Server:\n• Windows Native (:5001)\n• VirtualBox VM 1 (:5002)\n• VirtualBox VM 2 (:5003)\n• Docker Container (:5004)"]
+    end
+
+    %% Alur Reverse Proxy Online
+    HP -->|"1. Request HTTPS Publik"| PublicHTTP
+    Dosen -->|"1. Request HTTPS Publik"| PublicHTTP
+    PublicHTTP <==|"2. Encrypted Tunnel (Port 443)"|== Tunnel1
+    Tunnel1 -->|"3. Forward ke Port 80"| RP
+    RP -->|"4. Round Robin Balancing"| Cluster
+
+    %% Alur Cached Proxy Online
+    HP -.->|"Request via Proxy TCP"| PublicTCP
+    PublicTCP <==.-> Tunnel1
+    Tunnel1 -.-> Squid
+    Squid -.-> Origin
+```
+
+---
+
+## 🛠️ TAHAP 0: Persiapan Awal Jarak Jauh (2 Menit)
+
+1. Pastikan kedua laptop (Host 1 dan Host 2) sudah terhubung ke internet (Wi-Fi rumah / kosan masing-masing).
+2. Pastikan `ssh` aktif di Windows (bawaan Windows 10/11 sudah ada).
+3. **Konektivitas Host 1 $\leftrightarrow$ Host 2:**
+   * **Jika berada di rumah masing-masing (Beda Jaringan):**
+     * Pasang **[Tailscale](https://tailscale.com)** gratis di Host 1 dan Host 2 (login dengan 1 akun Google). Masing-masing laptop akan mendapat IP virtual `100.x.y.z` yang bisa saling ping dari mana saja.
+   * **Jika berada di ruangan yang sama:**
+     * Cukup gunakan IP Wi-Fi lokal Host 2 (misal `192.168.x.x`), sedangkan **klien (HP & Dosen) tetap mengakses secara online via internet publik**.
 
 ---
 
 ## 🚀 TAHAP 1: Eksekusi Sub-Tugas 2 (Reverse Proxy & Load Balancing)
-> 💡 **Rekomendasi:** Tunjukkan Sub-Tugas 2 terlebih dahulu karena sangat visual di browser HP dan tidak membutuhkan konfigurasi proxy manual di HP!
+> 💡 **Rekomendasi:** Tunjukkan Sub-Tugas 2 terlebih dahulu karena link HTTPS publiknya bisa langsung diklik oleh Dosen di chat Zoom/Google Meet!
 
-### Langkah 1.1: Menyalakan 4 Server Backend di Laptop Host 2
-1. Di Laptop Host 2, buka folder: `tugas-3\host2\`
+### Langkah 1.1: Nyalakan 4 Server Backend di Host 2
+1. Di Laptop Host 2, buka folder `tugas-3\host2\`
 2. Double-click file:
    👉 **`start_cluster.bat`**
-   * *Jendela PowerShell akan otomatis menyalakan:*
-     * **Node 1:** Windows Native Web Server pada port `5001`.
-     * **Node 4:** Docker Container Web Server pada port `5004`.
-3. Buka Oracle VirtualBox di Host 2, jalankan **VM1** dan **VM2**:
-   * Di terminal **VM 1**, ketik:
-     ```bash
-     sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"
-     ```
-   * Di terminal **VM 2**, ketik:
-     ```bash
-     sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"
-     ```
-   *(Node 2 aktif di port 5002, Node 3 aktif di port 5003 via NAT Port Forwarding).*
-4. Beritahukan alamat IP Host 2 ke pemegang Host 1 (misal: `192.168.43.20`).
+   * *Otomatis menyalakan Node 1 (Windows: 5001) dan Node 4 (Docker: 5004).*
+3. Di VirtualBox Host 2, nyalakan **VM 1** dan **VM 2**:
+   * Di terminal **VM 1**: `sh server_vm.sh 5002 "Node 2 - Linux VM 1" "#22c55e"`
+   * Di terminal **VM 2**: `sh server_vm.sh 5003 "Node 3 - Linux VM 2" "#eab308"`
+4. Catat IP Host 2 (IP Tailscale `100.x.y.z` jika beda rumah, atau IP lokal jika satu ruangan), lalu kirim ke Host 1 via chat.
 
 ---
 
-### Langkah 1.2: Menyalakan Reverse Proxy di Laptop Host 1
-1. Di Laptop Host 1, buka folder: `tugas-3\host1\`
+### Langkah 1.2: Nyalakan Reverse Proxy di Host 1
+1. Di Laptop Host 1, buka folder `tugas-3\host1\`
 2. Double-click file:
    👉 **`start_reverse_proxy.bat`**
-3. Masukkan IP Host 2 saat diminta di terminal:
-   ```text
-   Masukkan Alamat IP Host 2: 192.168.43.20
-   ```
-4. Pilih mode eksekusi: ketik **`1`** (Python Native) lalu tekan Enter.
-5. Terminal akan menampilkan konfirmasi:
-   ```text
-   REVERSE PROXY & LOAD BALANCER (HOST 1) AKTIF
-   Listening: http://0.0.0.0:80
-   Target Upstream Cluster Host 2:
-     - http://192.168.43.20:5001
-     - http://192.168.43.20:5002
-     - http://192.168.43.20:5003
-     - http://192.168.43.20:5004
-   ```
+3. Masukkan IP Host 2 tadi saat diminta.
+4. Pilih opsi **`1`** (Python Native). Reverse Proxy langsung aktif di port `80`.
 
 ---
 
-### Langkah 1.3: Pembuktian Visual di Hadapan Dosen (Menggunakan HP)
-1. Pastikan Wi-Fi HP terhubung ke hotspot (Proxy Wi-Fi dalam kondisi **Off/None**).
-2. Buka browser di HP (Google Chrome / Safari), ketik URL:
-   ```text
-   http://192.168.43.10/
-   ```
-   *(Gunakan alamat IP Host 1 port 80).*
-3. **Pegang HP Anda dan perlihatkan ke Dosen sambil menekan tombol Refresh:**
-   * **Refresh ke-1:** Muncul kartu Biru $\rightarrow$ `Node 1 - Windows Native (:5001)`
-   * **Refresh ke-2:** Muncul kartu Hijau $\rightarrow$ `Node 2 - VirtualBox VM 1 (:5002)`
-   * **Refresh ke-3:** Muncul kartu Kuning $\rightarrow$ `Node 3 - VirtualBox VM 2 (:5003)`
-   * **Refresh ke-4:** Muncul kartu Ungu $\rightarrow$ `Node 4 - Docker Container (:5004)`
-   * **Refresh ke-5:** Kembali ke Node 1 (*Siklus Round Robin terbukti bekerja sempurna!*)
-
----
-
-### Langkah 1.4: Pembuktian Kuantitatif (Automated Dummy Load Test)
-1. Di Laptop Host 2 (atau Host 1), buka folder `tugas-3\host2\`
+### Langkah 1.3: Buka Link Online Publik via Pinggy Tunnel (Host 1)
+1. Di Laptop Host 1, buka folder `tugas-3\`
 2. Double-click file:
-   👉 **`run_load_test.bat`**
-3. Masukkan target URL Host 1: `http://192.168.43.10/` dan jumlah request: `40`.
-4. Skrip akan mengirim 40 permintaan secara simultan dan mencetak tabel distribusi beban:
+   👉 **`start_tunnel_online.bat`**
+3. Pilih opsi **`1`** (*Reverse Proxy & Load Balancer - Port 80*).
+4. Jendela CMD Pinggy akan muncul menampilkan URL publik HTTPS, misalnya:
    ```text
-   ==================================================
-     HASIL DISTRIBUSI LOAD BALANCING (ROUND ROBIN)   
-   ==================================================
-    Nama Node                      | Jumlah Request | Persentase
-    -------------------------------+----------------+------------
-    Node 1 - Windows Native        | 10             |  25.00%
-    Node 2 - Linux VM 1            | 10             |  25.00%
-    Node 3 - Linux VM 2            | 10             |  25.00%
-    Node 4 - Docker Container      | 10             |  25.00%
-   ==================================================
+   ==============================================================
+   URL Publik: https://rxyz-123-456.free.pinggy.link
+   ==============================================================
    ```
-   *Tunjukkan tabel 25% rata ini sebagai bukti matematis bahwa pembagian beban seimbang.*
+   *(Biarkan jendela CMD ini tetap terbuka selama sesi demo).*
 
 ---
 
-## ⚡ TAHAP 2: Eksekusi Sub-Tugas 1 (Cached Proxy Squid)
-
-### Langkah 2.1: Menyalakan Origin Web Server di Laptop Host 2
-1. Di Laptop Host 2, buka folder: `tugas-3\host2\`
-2. Double-click file:
-   👉 **`start_origin_server.bat`**
-3. Terminal akan aktif menampilkan:
-   ```text
-   ORIGIN WEB SERVER (HOST 2) AKTIF
-   Listening: http://0.0.0.0:8080
-   Caching Header: max-age=3600 (1 Jam)
-   ```
-   *(Biarkan jendela ini tetap terlihat di layar Laptop 2).*
-
----
-
-### Langkah 2.2: Menyalakan Squid Caching Proxy di Laptop Host 1
-1. Di Laptop Host 1, buka folder: `tugas-3\host1\`
-2. Double-click file:
-   👉 **`start_squid.bat`**
-3. Squid akan aktif pada port `3128` dan terminal otomatis menampilkan streaming log `access.log`.
-
----
-
-### Langkah 2.3: Mengonfigurasi Manual Proxy di Smartphone (HP)
-1. Buka menu **Settings** di HP $\rightarrow$ pilih **Wi-Fi**.
-2. Klik tanda ikon info `(i)` atau ikon roda gigi pada Wi-Fi hotspot yang terhubung.
-3. Gulir ke bawah ke menu **Proxy** $\rightarrow$ ubah dari *None / Tidak Ada* menjadi **Manual**.
-4. Isi parameter:
-   * **Host / Nama Host Proxy:** Masukkan IP Host 1 (contoh: `192.168.43.10`).
-   * **Port:** `3128`.
-5. Klik **Simpan (Save)**.
-
----
-
-### Langkah 2.4: Pembuktian Caching di Hadapan Dosen
-
-1. **Uji Coba 1 - Permintaan Pertama (Cache MISS):**
-   * Di browser HP, buka alamat Origin Server Host 2:
-     ```text
-     http://192.168.43.20:8080/index.html
+### Langkah 1.4: Pembuktian Online di Hadapan Dosen & Aslab
+1. **Bagikan URL Publik ke Chat Zoom / Google Meet:**
+   * Bagikan link `https://rxyz-123-456.free.pinggy.link` ke dosen dan asisten lab.
+2. **Uji dari HP Anda (Koneksi Seluler 4G/5G):**
+   * Matikan Wi-Fi di HP Anda (murni gunakan paket data seluler).
+   * Buka link tersebut di browser HP.
+   * **Perlihatkan layar HP ke kamera/share screen sambil menekan Refresh:**
+     * **Refresh 1:** Muncul kartu Biru $\rightarrow$ `Node 1 - Windows Native`
+     * **Refresh 2:** Muncul kartu Hijau $\rightarrow$ `Node 2 - VirtualBox VM 1`
+     * **Refresh 3:** Muncul kartu Kuning $\rightarrow$ `Node 3 - VirtualBox VM 2`
+     * **Refresh 4:** Muncul kartu Ungu $\rightarrow$ `Node 4 - Docker Container`
+     * **Refresh 5:** Kembali ke Node 1 (*Algoritma Round Robin terbukti bekerja secara live online!*).
+3. **Uji Kuantitatif (Benchmark Otomatis):**
+   * Di laptop mana saja (Host 2 atau laptop anggota lain di rumahnya), jalankan:
+     ```bash
+     python test_dummy_requests.py --url https://rxyz-123-456.free.pinggy.link -n 40
      ```
-   * **Tunjukkan Layar Host 2:** Muncul baris log `[ORIGIN HIT] GET /index.html`. Artinya server asal dihubungi.
-   * **Tunjukkan Layar Host 1:** Terminal Squid mencatat **`TCP_MISS/200`**. Artinya Squid belum punya datanya dan mengunduh dari Host 2.
-2. **Uji Coba 2 - Permintaan Kedua (Cache HIT):**
-   * Di browser HP, tekan tombol **Refresh / Muat Ulang**.
-   * **Tunjukkan Layar Host 2:** **TIDAK ADA LOG BARU YANG MASUK!** (Host 2 tidak disentuh sama sekali).
-   * **Tunjukkan Layar Host 1:** Terminal Squid mencatat **`TCP_MEM_HIT/200`** atau **`TCP_HIT/200`**. Halaman langsung disajikan dari memori cache Squid di Host 1!
-3. **Uji Coba 3 - Pembuktian Ekstrem (Matikan Origin Server):**
-   * Di terminal Host 2, matikan Origin Server dengan menekan tombol **`Ctrl + C`**.
-   * Di browser HP, tekan tombol **Refresh** sekali lagi.
-   * **Hasil:** Halaman web **tetap berhasil terbuka secara instan!**
-   * Sampaikan ke dosen: *"Pak/Mas, server aslinya di Host 2 sudah kami matikan, namun HP kami tetap bisa mengakses konten web karena disuplai langsung oleh cache lokal Squid di Host 1."*
+   * Terminal akan menampilkan respon 40 request dari internet dan tabel persentase rata **25.00%** per node!
+
+---
+
+## ⚡ TAHAP 2: Eksekusi Sub-Tugas 1 (Cached Proxy Squid Online)
+
+### Langkah 2.1: Nyalakan Origin Web Server di Host 2
+1. Di Laptop Host 2, buka folder `tugas-3\host2\`
+2. Double-click file:
+   👉 **`start_origin_server.bat`** (aktif di port `8080`).
+3. Jika Host 2 di rumah terpisah, buka tunnel untuk port 8080 di Host 2:
+   * Double-click `start_tunnel_online.bat` $\rightarrow$ pilih opsi `3`.
+   * Salin URL Origin publik yang muncul (misal: `https://origin-jarkom.free.pinggy.link`).
+
+---
+
+### Langkah 2.2: Nyalakan Squid Proxy & Tunnel TCP di Host 1
+1. Di Laptop Host 1, buka folder `tugas-3\host1\`
+2. Double-click file:
+   👉 **`start_squid.bat`** (Squid aktif di port `3128` + streaming log).
+3. Di folder `tugas-3\`, double-click:
+   👉 **`start_tunnel_online.bat`** $\rightarrow$ pilih opsi **`2`** (*Squid Caching Proxy - Port 3128*).
+4. Jendela CMD Pinggy akan menampilkan Host dan Port TCP publik, misalnya:
+   ```text
+   ==============================================================
+   TCP Relay:
+   Host : a.pinggy.io
+   Port : 43210
+   ==============================================================
+   ```
+
+---
+
+### Langkah 2.3: Konfigurasi Proxy di Smartphone (HP)
+1. Buka menu **Settings** di HP $\rightarrow$ **Wi-Fi** $\rightarrow$ klik ikon Wi-Fi yang sedang tersambung.
+2. Pilih menu **Proxy** $\rightarrow$ ubah ke **Manual**.
+3. Isi sesuai output Pinggy tadi:
+   * **Host Proxy:** `a.pinggy.io`
+   * **Port:** `43210`
+4. Klik **Simpan (Save)**.
+
+---
+
+### Langkah 2.4: Pembuktian Caching Online di Hadapan Dosen
+1. **Akses Pertama (Cache MISS):**
+   * Di browser HP, buka URL Origin Server (misal `http://origin-jarkom.free.pinggy.link/index.html` atau IP Host 2 port 8080).
+   * **Host 2:** Terminal Origin mencatat log `[ORIGIN HIT]`.
+   * **Host 1:** Terminal Squid mencatat **`TCP_MISS/200`** (Squid belum punya file dan mendownload dari Origin).
+2. **Akses Kedua (Cache HIT):**
+   * Di browser HP, tekan tombol **Refresh**.
+   * **Host 2:** **TIDAK ADA LOG BARU YANG MASUK!**
+   * **Host 1:** Terminal Squid mencatat **`TCP_MEM_HIT/200`** atau **`TCP_HIT/200`** (halaman disajikan instan 0ms dari cache lokal Squid di Host 1).
+3. **Uji Ekstrem (Matikan Origin Server):**
+   * Di Host 2, matikan `origin_server.py` (`Ctrl + C`).
+   * Di HP, tekan **Refresh** lagi $\rightarrow$ **Halaman web tetap berhasil terbuka!**
+   * Jelaskan ke dosen: *"Pak/Mas, server aslinya di Host 2 sudah dimatikan, namun klien HP dari internet tetap bisa mengakses website karena disuplai oleh cache Squid di Host 1."*
 
 > [!IMPORTANT]
-> Setelah demonstrasi selesai, kembalikan pengaturan Proxy di Wi-Fi HP menjadi **None / Off** agar HP dapat browsing internet normal kembali.
+> Setelah demo selesai, matikan kembali proxy manual di Wi-Fi HP (ubah ke *Off/None*) agar HP dapat mengakses internet biasa lagi.
 
 ---
 
-## 🎙️ TAHAP 3: Naskah Presentasi Siap Pakai saat Maju Demo
+## 🎙️ TAHAP 3: Naskah Presentasi Siap Pakai saat Share Screen di Zoom / Google Meet
 
-Gunakan pembagian peran dan kalimat ini saat berbicara di depan dosen/asisten lab:
+### 👤 Anggota 1 (Host 1 - Membuka Presentasi):
+> *"Selamat pagi/siang Bapak/Ibu Dosen dan Mas/Mbak Asisten. Pada demonstrasi Tugas 3 ini, kelompok kami mengimplementasikan arsitektur **Reverse Proxy Load Balancer** dan **Cached Proxy** yang telah kami online-kan ke internet publik menggunakan encrypted tunneling, sehingga dapat diakses secara live lintas jaringan."*
 
-### 👤 Anggota 1 (Host 1 - Pembuka & Penjelasan Proxy):
-> *"Selamat pagi/siang Bapak/Ibu Dosen dan Mas/Mbak Asisten. Pada Tugas 3 ini, kelompok kami mengimplementasikan dua arsitektur perantara jaringan:*
-> 1. *Pertama, **Reverse Proxy Load Balancer** di mana Host 1 bertindak sebagai single gateway yang membagi beban ke 4 server di Host 2.*
-> 2. *Kedua, **Cached Proxy** menggunakan Squid di Host 1 untuk menyimpan objek web asal Host 2 di cache lokal.*
-> 
-> *Sekarang kami akan mendemonstrasikan Sub-Tugas 2 terlebih dahulu menggunakan smartphone sebagai real-client."*
-
-### 👤 Anggota 2 (Host 2 - Menjelaskan 4 Backend Server):
-> *"Di Laptop Host 2, kami mengorkestrasikan 4 instance server web di 4 lingkungan komputasi yang terisolasi:*
-> * *Node 1 berjalan secara native di OS Windows (port 5001).*
+### 👤 Anggota 2 (Host 2 - Menjelaskan Kluster Server):
+> *"Di Laptop Host 2, kami mengorkestrasikan 4 instance backend di 4 lingkungan komputasi yang terisolasi:*
+> * *Node 1 berjalan di Windows Native (port 5001).*
 > * *Node 2 berjalan di VirtualBox VM 1 Alpine Linux (port 5002 via NAT port forward).*
 > * *Node 3 berjalan di VirtualBox VM 2 Alpine Linux (port 5003 via NAT port forward).*
-> * *Node 4 berjalan di dalam kontainer Docker WSL 2 (port 5004).*
+> * *Node 4 berjalan di Docker Container WSL 2 (port 5004).*
 > 
-> *Seluruh server ini menunggu instruksi dari Reverse Proxy Host 1."*
+> *Seluruh server ini terhubung ke Reverse Proxy di Host 1."*
 
-### 👤 Anggota 3 (Memperagakan HP & Dummy Test):
-> *(Sambil memperlihatkan layar smartphone HP ke dosen)*
-> *"Klien HP kami hanya mengakses IP Host 1 di port 80. Ketika saya menekan refresh, dapat dilihat kartu identitas server berganti warna dan nama secara bergiliran: Windows, VM 1, VM 2, dan Docker.*
+### 👤 Anggota 3 (Memperagakan Akses Online & Benchmark):
+> *(Share screen browser atau arahkan kamera ke HP)*
+> *"Kami membuka link publik HTTPS Pinggy ini langsung dari smartphone yang menggunakan paket data seluler 4G mandiri tanpa Wi-Fi lokal. Bapak/Ibu dosen juga dapat ikut mengklik link yang kami kirimkan di chat Zoom.*
 > 
-> *Ketika kami menembakkan 40 permintaan otomatis melalui script benchmark, algoritma Round Robin membagi beban secara seimbang masing-masing tepat 25% (10 request per node) tanpa bottleneck."*
+> *Ketika kami refresh, algoritma Round Robin secara bergiliran mendistribusikan beban ke Windows, VM 1, VM 2, dan Docker.*
+> 
+> *Saat kami jalankan stress test 40 requests dari terminal, beban terbagi seimbang sempurna masing-masing tepat 25%."*
 
 ### 👤 Anggota 4 (Menjelaskan Cached Proxy Squid):
-> *"Selanjutnya untuk Cached Proxy, kami menyalakan Squid di Host 1 dan Origin Server di Host 2. Melalui pengaturan manual proxy port 3128 di HP:*
-> * *Pada request pertama terjadi **Cache MISS** (tercatat di terminal Squid dan Origin Server).*
-> * *Pada request kedua terjadi **Cache HIT** dengan latensi 0ms karena disajikan dari cache memori Squid.*
-> * *Bahkan ketika Origin Server di Host 2 kami matikan, klien HP tetap dapat mengakses halaman web secara utuh."*
+> *"Selanjutnya untuk Cached Proxy, Squid di Host 1 kami hubungkan ke internet melalui relay TCP. Ketika klien luar mengakses web pertama kali terjadi **Cache MISS**, dan pada akses kedua terjadi **Cache HIT** dengan latensi 0ms.*
+> 
+> *Bahkan saat Origin Server di Host 2 dimatikan, website tetap berhasil diakses dari internet karena disajikan langsung dari memori cache Squid."*
 
 ---
 
-## 🧠 Cheatsheet Tanya-Jawab Kuis Dosen/Aslab (FAQ)
+## 🧠 Cheatsheet Tanya-Jawab Pengujian Online (FAQ)
 
-1. **T: Mengapa klien luar (HP) diarahkan ke port 80 Host 1, bukan langsung ke port 5001–5004 di Host 2?**
-   * **Jawab:** Itulah esensi arsitektur **Reverse Proxy**. Tujuannya adalah menyembunyikan infrastruktur internal backend demi keamanan (*security through obscurity*), menyediakan satu gerbang tunggal (*single entry point*), dan membagi beban lalu lintas secara dinamis (*load balancing*). Klien tidak perlu tahu berapa banyak server di belakangnya.
+1. **T: Mengapa kelompok Anda memilih menggunakan port tunneling (Pinggy) untuk demo?**
+   * **Jawab:** Karena di dunia industri nyata, server aplikasi berada di data center privat. Port tunneling merepresentasikan bagaimana sebuah edge gateway mengekspos layanan internal ke internet publik secara aman tanpa harus membuka port router fisik (*NAT traversal / zero firewall configuration*).
 
-2. **T: Apa perbedaan mendasar antara Forward Proxy (Squid) dan Reverse Proxy (Nginx)?**
+2. **T: Mengapa klien diarahkan ke URL Reverse Proxy Host 1, bukan langsung ke IP Host 2?**
+   * **Jawab:** Itulah esensi **Reverse Proxy**. Tujuannya menyembunyikan arsitektur internal backend demi keamanan (*security through obscurity*), menyediakan *single entry point* publik, dan mendistribusikan beban secara merata (*load balancing*). Klien tidak perlu tahu IP privat dari 4 server di Host 2.
+
+3. **T: Apa bedanya Forward Proxy (Squid) dan Reverse Proxy (Nginx)?**
    * **Jawab:** 
-     * **Forward Proxy (Squid)** bertindak mewakili **klien** untuk mengakses web server luar/internet (fokus: caching, penghematan bandwidth, filter akses klien).
-     * **Reverse Proxy (Nginx)** bertindak mewakili **server backend** untuk melayani klien luar (fokus: load balancing, SSL termination, failover, proteksi server).
-
-3. **T: Mengapa di VirtualBox harus menggunakan Port Forwarding NAT?**
-   * **Jawab:** Karena mode NAT menempatkan VM di subnet privat VirtualBox (`10.0.2.0/24`) yang terisolasi dari jaringan Wi-Fi luar. Dengan aturan Port Forwarding, paket dari Host fisik (port 5002/5003) dipetakan masuk ke interface internal VM, sehingga Reverse Proxy di Host 1 dapat menjangkaunya melalui IP Host 2.
-
-4. **T: Bagaimana Squid mengetahui bahwa suatu halaman web boleh di-cache?**
-   * **Jawab:** Melalui HTTP response header `Cache-Control: public, max-age=3600` yang dikirimkan oleh Origin Server, serta aturan `refresh_pattern` pada file konfigurasi `squid.conf`.
+     * **Forward Proxy (Squid)** bertindak mewakili **klien** untuk keluar mengakses internet/server lain (caching, penghematan bandwidth, filtering).
+     * **Reverse Proxy (Nginx)** bertindak mewakili **server backend** untuk menerima request dari klien luar (load balancing, SSL termination, proteksi backend).
